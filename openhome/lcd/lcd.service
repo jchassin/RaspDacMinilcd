@@ -1,0 +1,15 @@
+[Unit]
+Description=LCD Display Service
+Wants=multi-user.target
+[Service]
+WorkingDirectory=/home/jean/dev/RaspDacMiniLcd/openhome/lcd
+#ExecStartPre=/bin/sleep 10
+ExecStart=/home/jean/dev/RaspDacMiniLcd/openhome/lcd/start_lcd
+StandardOutput=null
+User=root
+Type=simple
+Restart=always
+KillSignal=SIGINT
+[Install]
+WantedBy=multi-user.target
+
