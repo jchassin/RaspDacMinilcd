@@ -1,3 +1,4 @@
 
-groupadd: group 'audiophonics' already exists
-started at 16:46:29 finished at 16:46:35
+usermod: user 'volumio' does not exist
+%audiophonics ALL=(ALL) NOPASSWD: /bin/sh /home/jean/openhome_player/RaspDacMinilcd/openhome/apts_web_interface/ap_modules/lcd/kiosk_autoconfig.sh
+started at 19:49:54 finished at 19:51:09

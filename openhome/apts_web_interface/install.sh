@@ -49,4 +49,8 @@ echo "Audiophonics ToolSet service enabled & started"
 # Say something nice and exit
 echo "* End of installation : Audiophonics ToolSet (web interface) - no reboot required"
 echo started at $start_time finished at "$(date +"%T")" >> install_log.txt
+
+cd $start_pwd
+cp RaspDacMinilcd.conf /etc/nginx/sites-enabled 
+
 exit 0

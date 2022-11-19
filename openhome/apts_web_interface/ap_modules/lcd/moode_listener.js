@@ -62,6 +62,7 @@ moode_listener.prototype.send_req = function(path,callback){
             } catch(e){console.warn("Something went wrong with auth", e)}
         }
         if(typeof callback==="function"){
+            //console.warn("debug : ", str)
             callback(str);
         }
       });
@@ -86,6 +87,8 @@ moode_listener.prototype.get_data = function(path,callback){
     this.send_req(path, handle_response );
     function handle_response(data){
         try{
+            //console.warn("request", path)
+            //console.warn("data to parse", data) 
             data = JSON.parse(data);
             callback(data);
         }catch(e){console.warn("fatal error, cannot read data from moode", e)}

@@ -46,7 +46,7 @@ moode.on("moode_data", function(data){
        cp.exec('export DISPLAY=:0 ; xset dpms force on', (stderr,stdout)=>{
                 if(stderr){console.warn(stderr); return}
                 else{
-                        console.log("lcd restarted");
+                        console.log("dmps on");
                         if ( typeof callback === "function"){callback()}
                 }
         } );
@@ -54,13 +54,14 @@ moode.on("moode_data", function(data){
     }
 });
  
-moode.on("ready", function(){start_localui(start_lcd)})
+//moode.on("ready", function(){start_localui(start_lcd)})
 
 
 
 function start_localui(callback){
 	console.log("(Re)starting ui");
-	cp.exec('sudo systemctl restart apts_web_interface', (stderr,stdout)=>{
+	//cp.exec('sudo systemctl restart apts_web_interface', (stderr,stdout)=>{
+        cp.exec('echo does not : sudo systemctl restart apts_web_interface', (stderr,stdout)=>{
 		if(stderr){console.warn(stderr); return}
 		else{
 			console.log("ui restarted");
@@ -72,7 +73,8 @@ function start_localui(callback){
 }
 function start_lcd(callback){
 	console.log("(Re)starting LCD");
-	cp.exec('sudo systemctl restart lcd', (stderr,stdout)=>{
+	//#cp.exec('sudo systemctl restart lcd', (stderr,stdout)=>{
+        cp.exec('echo does not : sudo systemctl restart lcd', (stderr,stdout)=>{
 		if(stderr){console.warn(stderr); return}
 		else{
 			console.log("lcd restarted");

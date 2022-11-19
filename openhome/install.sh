@@ -17,5 +17,6 @@ done
 # ---------------------------------------------------
 # Say something nice and exit
 echo "* End of installation : RaspDacMiniLCD for Openhome Audio"
-echo started at $start_time finished at "$(date +"%T")"
-exit 0
+echo "started at $start_time finished at "$(date +"%T")"
+
+
