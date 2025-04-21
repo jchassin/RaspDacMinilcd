@@ -1,10 +1,10 @@
 #!/bin/bash
 
 start_time="$(date +"%T")"
-starting_dir=${PWD}
+starting_dir=${PWD} 
 
 echo "***   Installation of RaspDacMiniLCD for Openhome Audio" 
-echo "https://github.com/jchassin/ohPlayer
+echo "https://github.com/jchassin/ohPlayer"
 echo "***   _____________________________________" 
 
 # Install modules
@@ -17,6 +17,6 @@ done
 # ---------------------------------------------------
 # Say something nice and exit
 echo "* End of installation : RaspDacMiniLCD for Openhome Audio"
-echo "started at $start_time finished at "$(date +"%T")"
+echo "started at $start_time finished at $(date +\"%T\")"
 
 

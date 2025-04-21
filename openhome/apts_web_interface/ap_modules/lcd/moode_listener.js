@@ -87,8 +87,8 @@ moode_listener.prototype.get_data = function(path,callback){
     this.send_req(path, handle_response );
     function handle_response(data){
         try{
-            //console.warn("request", path)
-            //console.warn("data to parse", data) 
+            console.warn("jean request", path)
+            console.warn("data to parse", data) 
             data = JSON.parse(data);
             callback(data);
         }catch(e){console.warn("fatal error, cannot read data from moode", e)}

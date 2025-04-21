@@ -40,6 +40,11 @@ if (!$sock) {
 	echo json_encode(array('error' => 'openMpdSock() failed', 'module' => 'engine-mpd'));
 	exit;
 }
+else {
+        debugLog('engine-mpd: Connection to MPD succedeed');
+}
+
+
 
 workerLog('engine-mpd: Get initial status');
 $status = getMpdStatus($sock);
