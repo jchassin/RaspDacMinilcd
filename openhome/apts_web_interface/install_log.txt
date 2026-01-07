@@ -1,3 +1,0 @@
-
-Created symlink /etc/systemd/system/multi-user.target.wants/apts_web_interface.service → /etc/systemd/system/apts_web_interface.service.
-started at 19:49:40 finished at 19:51:10

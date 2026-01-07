@@ -8,6 +8,8 @@ echo "" > install_log.txt
 # ---------------------------------------------------
 # Install nodejs
 apt-get install -y nodejs > /dev/null 2>> install_log.txt &&
+touch /var/log/moode.log
+chmod 777 /var/log/moode.log
 
 
 # ---------------------------------------------------

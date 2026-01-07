@@ -46,28 +46,28 @@ else {
 
 
 
-workerLog('engine-mpd: Get initial status');
+//workerLog('engine-mpd: Get initial status');
 $status = getMpdStatus($sock);
-workerLog('mpd status : ' . $status);
+//workerLog('mpd status : ' . $status);
 $current = parseStatus($status);
 
 // Initiate MPD idle
 //workerLog('engine-mpd: UI state=(' . $_GET['state'] . '), MPD state=(' . $current['state'] .')');
 if ($_GET['state'] == $current['state']) {
-	workerLog('engine-mpd: Wait for idle timeout');
+	//workerLog('engine-mpd: Wait for idle timeout');
 	sendMpdCmd($sock, 'idle');
 	stream_set_timeout($sock, 600000); // Value determines how often PHP times out the socket
 	$resp = readMpdResp($sock);
 
 	$event = explode("\n", $resp)[0];
 	//workerLog('engine-mpd: Idle timeout event=(' . $event . ')');
-	workerLog('engine-mpd: Get new status');
+	//workerLog('engine-mpd: Get new status');
 	$current = parseStatus(getMpdStatus($sock));
 	$current['idle_timeout_event'] = $event;
 }
 
 // Create enhanced metadata
-workerLog('engine-mpd: Generating enhanced metadata');
+//workerLog('engine-mpd: Generating enhanced metadata');
 $current = enhanceMetadata($current, $sock, 'engine_mpd_php');
 //workerLog('enhanceMetadata : ' . $current );
 closeMpdSock($sock);

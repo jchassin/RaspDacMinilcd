@@ -46,11 +46,11 @@ moode.on("moode_data", function(data){
        cp.exec('export DISPLAY=:0 ; xset dpms force on', (stderr,stdout)=>{
                 if(stderr){console.warn(stderr); return}
                 else{
-                        console.log("dmps on");
+                        //console.log("dmps on");
                         if ( typeof callback === "function"){callback()}
                 }
         } );
-       console.log('xset dpms force on');
+       //console.log('xset dpms force on');
     }
 });
  
