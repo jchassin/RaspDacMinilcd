@@ -8,18 +8,34 @@ systemctl stop lcd &>/dev/null
 
 # ---------------------------------------------------
 # install C dependencies
-echo "using fbcp-ili9341 as driver see : https://github.com/juj/fbcp-ili9341"
-rm -r fbcp-ili9341
-apt-get install -y build-essential cmake  &&
-git clone https://github.com/juj/fbcp-ili9341.git &&
-cd fbcp-ili9341 &&
-mkdir build &&
-cd build &&
-cmake -DILI9341=ON -DSPI_BUS_CLOCK_DIVISOR=20 -DARMV8A=ON -DGPIO_TFT_DATA_CONTROL=27 -DGPIO_TFT_RESET_PIN=24 -DGPIO_TFT_BACKLIGHT=26 -DDISPLAY_ROTATE_180_DEGREES=ON -DSTATISTICS=0 .. &&
-make &&
-cp fbcp-ili9341 $start_pwd/start_lcd &&
-cd $start_pwd  &&
-rm -r fbcp-ili9341  &&
+start_pwd="$(pwd)"
+
+echo "Using fbcp-ili9341"
+rm -rf fbcp-ili9341
+apt-get update
+apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    libraspberrypi-dev
+git clone https://github.com/juj/fbcp-ili9341.git
+cd fbcp-ili9341
+mkdir -p build
+cd build
+cmake \
+    -DILI9341=ON \
+    -DSPI_BUS_CLOCK_DIVISOR=20 \
+    -DARMV8A=ON \
+    -DGPIO_TFT_DATA_CONTROL=27 \
+    -DGPIO_TFT_RESET_PIN=24 \
+    -DGPIO_TFT_BACKLIGHT=26 \
+    -DDISPLAY_ROTATE_180_DEGREES=ON \
+    -DSTATISTICS=0 \
+    ..
+make -j"$(nproc)"
+cp fbcp-ili9341 "$start_pwd/start_lcd"
+cd "$start_pwd"
+rm -rf fbcp-ili9341
 chmod +x ./start_lcd
 
 # ---------------------------------------------------
