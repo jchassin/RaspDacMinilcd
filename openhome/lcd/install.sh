@@ -1,88 +1,174 @@
 #!/bin/bash
+set -euo pipefail
+
 start_time="$(date +"%T")"
-start_pwd=$PWD
-echo "* Installing : RaspDac Mini LCD Display driver"
-echo "" > install_log.txt
+install_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+log_file="${install_dir}/install_log.txt"
 
-systemctl stop lcd &>/dev/null
+CONFIG_FILE="/boot/firmware/config.txt"
+OVERLAY_NAME="raspdac-mini-ili9341"
+OVERLAY_DTS="${install_dir}/${OVERLAY_NAME}-overlay.dts"
+OVERLAY_DTBO="${install_dir}/${OVERLAY_NAME}.dtbo"
+OVERLAY_DEST="/boot/firmware/overlays/${OVERLAY_NAME}.dtbo"
 
-# ---------------------------------------------------
-# install C dependencies
-start_pwd="$(pwd)"
+echo "* Installing : RaspDAC Mini LCD configuration"
+: > "$log_file"
 
-echo "Using fbcp-ili9341"
-rm -rf fbcp-ili9341
+# --------------------------------------------------------------------
+# Must run as root
+# --------------------------------------------------------------------
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Please run this installer with sudo:"
+    echo "  sudo $0"
+    exit 1
+fi
+
+# User who invoked sudo.
+TARGET_USER="${SUDO_USER:-}"
+
+if [ -z "$TARGET_USER" ] || [ "$TARGET_USER" = "root" ]; then
+    echo "Unable to determine the desktop user."
+    echo "Run this script with sudo from the user's session."
+    exit 1
+fi
+
+TARGET_HOME="$(getent passwd "$TARGET_USER" | cut -d: -f6)"
+
+if [ -z "$TARGET_HOME" ] || [ ! -d "$TARGET_HOME" ]; then
+    echo "Unable to determine home directory for user: $TARGET_USER"
+    exit 1
+fi
+
+echo "Desktop user : $TARGET_USER"
+echo "Home         : $TARGET_HOME"
+echo "Install dir  : $install_dir"
+
+# --------------------------------------------------------------------
+# Dependencies
+# --------------------------------------------------------------------
+echo "* Installing dependencies"
+
 apt-get update
 apt-get install -y \
-    build-essential \
-    cmake \
-    git \
-    libraspberrypi-dev
-git clone https://github.com/juj/fbcp-ili9341.git
-cd fbcp-ili9341
-mkdir -p build
-cd build
-cmake \
-    -DILI9341=ON \
-    -DSPI_BUS_CLOCK_DIVISOR=20 \
-    -DARMV8A=ON \
-    -DGPIO_TFT_DATA_CONTROL=27 \
-    -DGPIO_TFT_RESET_PIN=24 \
-    -DGPIO_TFT_BACKLIGHT=26 \
-    -DDISPLAY_ROTATE_180_DEGREES=ON \
-    -DSTATISTICS=0 \
-    ..
-make -j"$(nproc)"
-cp fbcp-ili9341 "$start_pwd/start_lcd"
-cd "$start_pwd"
-rm -rf fbcp-ili9341
-chmod +x ./start_lcd
+    device-tree-compiler \
+    wlr-randr
 
-# ---------------------------------------------------
-# Allow user to reinstall driver from web interface 
-groupadd audiophonics  &&
-usermod -a -G audiophonics pi  && 
-echo "group created" || echo "skip group creation"
-if ! grep -q '%audiophonics ALL=(ALL) NOPASSWD: /bin/aplcdi *' "/etc/sudoers"; then
-    echo '%audiophonics ALL=(ALL) NOPASSWD: /bin/aplcdi *' | sudo EDITOR='tee -a' visudo >> install_log.txt  &&
-    echo "allowed user to reinstall driver from web interface"
+# --------------------------------------------------------------------
+# Compile and install Device Tree overlay
+# --------------------------------------------------------------------
+echo "* Installing ILI9341 DRM overlay"
+
+if [ ! -f "$OVERLAY_DTS" ]; then
+    echo "Missing Device Tree source:"
+    echo "  $OVERLAY_DTS"
+    exit 1
 fi
 
-if [ -e /bin/aplcdi ]
-then 
-	echo "reinstall script already configured"
-else
-printf "#!/bin/sh 
-cd ${PWD}
-bash ${PWD}/install.sh
-" > /bin/aplcdi
-chmod +xX /bin/aplcdi
-fi
-# ---------------------------------------------------
-# Write in config
-if ! grep -q "hdmi_group=2" /boot/config.txt; then echo "hdmi_group=2" >> /boot/config.txt; fi
-if ! grep -q "hdmi_mode=87" /boot/config.txt; then echo "hdmi_mode=87" >> /boot/config.txt; fi
-if ! grep -q "hdmi_cvt=320 240 60 1 0 0 0" /boot/config.txt; then echo "hdmi_cvt=320 240 60 1 0 0 0" >> /boot/config.txt; fi
+dtc -@ -I dts -O dtb \
+    -o "$OVERLAY_DTBO" \
+    "$OVERLAY_DTS"
 
-# ---------------------------------------------------
-# Register & service
-printf "[Unit]
-Description=LCD Display Service
-Wants=multi-user.target
-[Service]
-WorkingDirectory=${PWD}
-#ExecStartPre=/bin/sleep 10
-ExecStart=${PWD}/start_lcd
-StandardOutput=null
-User=root
-Type=simple
-Restart=always
-KillSignal=SIGINT
-[Install]
-WantedBy=multi-user.target" > /etc/systemd/system/lcd.service	
-systemctl restart lcd
-# ---------------------------------------------------
-# Say something nice and exit
-echo "* End of installation : RaspDac Mini LCD Display - no reboot required"
-echo started at $start_time finished at "$(date +"%T")" >> install_log.txt
+install -m 0644 "$OVERLAY_DTBO" "$OVERLAY_DEST"
+
+# --------------------------------------------------------------------
+# Raspberry Pi boot configuration
+# --------------------------------------------------------------------
+echo "* Configuring Raspberry Pi boot"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Missing Raspberry Pi configuration file:"
+    echo "  $CONFIG_FILE"
+    exit 1
+fi
+
+add_config_line()
+{
+    local line="$1"
+
+    if ! grep -Fxq "$line" "$CONFIG_FILE"; then
+        echo "$line" >> "$CONFIG_FILE"
+        echo "Added to config.txt: $line"
+    fi
+}
+
+add_config_line "dtparam=spi=on"
+add_config_line "dtoverlay=vc4-kms-v3d"
+add_config_line "max_framebuffers=2"
+add_config_line "dtoverlay=raspdac-mini-ili9341"
+
+# --------------------------------------------------------------------
+# labwc configuration
+# --------------------------------------------------------------------
+echo "* Configuring labwc"
+
+LABWC_DIR="${TARGET_HOME}/.config/labwc"
+DISPLAY_SCRIPT="${LABWC_DIR}/raspdac-display.sh"
+AUTOSTART="${LABWC_DIR}/autostart"
+
+install -d -m 0755 -o "$TARGET_USER" -g "$TARGET_USER" "$LABWC_DIR"
+
+cat > "$DISPLAY_SCRIPT" <<'EOF'
+#!/bin/sh
+
+# Wait until labwc/wlroots has created its outputs.
+sleep 1
+
+wlr-randr \
+    --output HDMI-A-1 --off \
+    --output SPI-1 --on \
+    --pos 0,0
+EOF
+
+chown "$TARGET_USER:$TARGET_USER" "$DISPLAY_SCRIPT"
+chmod 0755 "$DISPLAY_SCRIPT"
+
+# Preserve existing labwc autostart.
+touch "$AUTOSTART"
+chown "$TARGET_USER:$TARGET_USER" "$AUTOSTART"
+
+AUTOSTART_LINE="${DISPLAY_SCRIPT} &"
+
+if ! grep -Fxq "$AUTOSTART_LINE" "$AUTOSTART"; then
+    printf '\n%s\n' "$AUTOSTART_LINE" >> "$AUTOSTART"
+fi
+
+# --------------------------------------------------------------------
+# Allow reinstall from web interface
+# --------------------------------------------------------------------
+echo "* Configuring reinstall command"
+
+if ! getent group audiophonics >/dev/null; then
+    groupadd audiophonics
+fi
+
+usermod -aG audiophonics "$TARGET_USER"
+
+cat > /usr/local/bin/aplcdi <<EOF
+#!/bin/sh
+cd '${install_dir}'
+exec /bin/bash '${install_dir}/install.sh'
+EOF
+
+chmod 0755 /usr/local/bin/aplcdi
+chown root:root /usr/local/bin/aplcdi
+
+cat > /etc/sudoers.d/audiophonics-raspdac-lcd <<'EOF'
+%audiophonics ALL=(root) NOPASSWD: /usr/local/bin/aplcdi
+EOF
+
+chmod 0440 /etc/sudoers.d/audiophonics-raspdac-lcd
+
+# Validate sudoers before finishing.
+visudo -cf /etc/sudoers.d/audiophonics-raspdac-lcd
+
+# --------------------------------------------------------------------
+# Finish
+# --------------------------------------------------------------------
+echo ""
+echo "* End of installation : RaspDAC Mini LCD Display"
+echo "* Reboot required"
+echo ""
+echo "Started at $start_time, finished at $(date +"%T")" >> "$log_file"
+
 exit 0
+
