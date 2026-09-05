@@ -50,8 +50,9 @@ echo "* Installing dependencies"
 
 apt-get update
 apt-get install -y \
-    device-tree-compiler \
-    wlr-randr
+device-tree-compiler \
+    wlr-randr \
+    swayidle
 
 # --------------------------------------------------------------------
 # Compile and install Device Tree overlay
@@ -92,7 +93,7 @@ add_config_line()
 }
 
 add_config_line "dtparam=spi=on"
-add_config_line "dtoverlay=vc4-kms-v3d"
+add_config_line "dtoverlay=vc4-kms-v3d,noaudio"
 add_config_line "max_framebuffers=2"
 add_config_line "dtoverlay=raspdac-mini-ili9341"
 
@@ -111,12 +112,21 @@ cat > "$DISPLAY_SCRIPT" <<'EOF'
 #!/bin/sh
 
 # Wait until labwc/wlroots has created its outputs.
-sleep 1
+sleep 2
 
 wlr-randr \
-    --output HDMI-A-1 --off \
     --output SPI-1 --on \
     --pos 0,0
+
+sleep 3
+
+wlr-randr \
+    --output HDMI-A-1 --off
+
+swayidle -w \
+    timeout 300 'wlr-randr --output SPI-1 --off' \
+    resume 'wlr-randr --output SPI-1 --on --pos 0,0' &
+
 EOF
 
 chown "$TARGET_USER:$TARGET_USER" "$DISPLAY_SCRIPT"
@@ -131,6 +141,52 @@ AUTOSTART_LINE="${DISPLAY_SCRIPT} &"
 if ! grep -Fxq "$AUTOSTART_LINE" "$AUTOSTART"; then
     printf '\n%s\n' "$AUTOSTART_LINE" >> "$AUTOSTART"
 fi
+
+
+# Remove wf-panel because it removes ~/.asoundrc at startup
+LABWC_GLOBAL_AUTOSTART="/etc/xdg/labwc/autostart"
+
+if grep -qE '^[[:space:]]*/usr/bin/lwrespawn /usr/bin/wf-panel-pi' \
+    "$LABWC_GLOBAL_AUTOSTART"; then
+
+    cp -a "$LABWC_GLOBAL_AUTOSTART" \
+        "${LABWC_GLOBAL_AUTOSTART}.raspdac-backup"
+
+    sed -i \
+        's|^[[:space:]]*/usr/bin/lwrespawn /usr/bin/wf-panel-pi|# Disabled by RaspDAC Mini: /usr/bin/lwrespawn /usr/bin/wf-panel-pi|' \
+        "$LABWC_GLOBAL_AUTOSTART"
+fi
+
+# --------------------------------------------------------------------
+# Setup display on/off scripts
+# --------------------------------------------------------------------
+DISPLAY_ON_SCRIPT="/usr/local/bin/raspdac-display-on"
+DISPLAY_OFF_SCRIPT="/usr/local/bin/raspdac-display-off"
+
+cat > "$DISPLAY_ON_SCRIPT" <<EOF
+#!/bin/sh
+
+USER_NAME="${TARGET_USER}"
+USER_UID="\$(id -u "\$USER_NAME")"
+
+export XDG_RUNTIME_DIR="/run/user/\$USER_UID"
+export WAYLAND_DISPLAY="wayland-0"
+
+exec runuser -u "\$USER_NAME" -- wlopm --on SPI-1
+EOF
+
+cat > "$DISPLAY_OFF_SCRIPT" <<EOF
+#!/bin/sh
+
+USER_NAME="${TARGET_USER}"
+USER_UID="\$(id -u "\$USER_NAME")"
+
+export XDG_RUNTIME_DIR="/run/user/\$USER_UID"
+export WAYLAND_DISPLAY="wayland-0"
+
+exec runuser -u "\$USER_NAME" -- wlopm --off SPI-1
+EOF
+
 
 # --------------------------------------------------------------------
 # Allow reinstall from web interface

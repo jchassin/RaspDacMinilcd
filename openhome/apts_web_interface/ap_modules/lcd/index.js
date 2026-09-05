@@ -43,13 +43,12 @@ moode.on("moode_data", function(data){
     websocket_interface.broadcast({header:"pushState",arg : parsed_data}); 
 
     if ( data.state === 'play') {
-       cp.exec('export DISPLAY=:0 ; xset dpms force on', (stderr,stdout)=>{
-                if(stderr){console.warn(stderr); return}
-                else{
-                        //console.log("dmps on");
-                        if ( typeof callback === "function"){callback()}
-                }
-        } );
+       cp.exec('sudo /usr/local/bin/raspdac-display-on', (error, stdout, stderr) => {
+          if (error) {
+             console.warn(stderr || error);
+             return;
+          }
+       });
        //console.log('xset dpms force on');
     }
 });

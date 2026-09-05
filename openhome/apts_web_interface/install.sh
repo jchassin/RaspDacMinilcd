@@ -7,7 +7,7 @@ echo "" > install_log.txt
 
 # ---------------------------------------------------
 # Install nodejs
-apt-get install -y nodejs > /dev/null 2>> install_log.txt &&
+apt-get install -y nodejs nginx php8.4-fpm > /dev/null 2>> install_log.txt &&
 touch /var/log/moode.log
 chmod 777 /var/log/moode.log
 
@@ -26,7 +26,7 @@ done
 # Enable service
 printf "[Unit]
 Description=Audiophonics toolset in a web interface
-After=nginx.service php7.2-fpm.service ohPlayer.service
+After=nginx.service php8.4-fpm.service ohPlayer.service
 
 
 #After=nginx.service php7.0-fpm.service mpd.service
@@ -54,5 +54,7 @@ echo started at $start_time finished at "$(date +"%T")" >> install_log.txt
 
 cd $start_pwd
 cp RaspDacMinilcd.conf /etc/nginx/sites-enabled 
-
+rm /etc/nginx/site-enable/default
+ln -s ../sites-available/RaspDacMinilcd.conf  /etc/nginx/sites-enabled/default
+systemctl restart nginx
 exit 0
