@@ -117,7 +117,8 @@ sleep 2
 
 wlr-randr \
     --output SPI-1 --on \
-    --pos 0,0
+    --pos 0,0 \
+    --transform 180
 
 sleep 3
 
@@ -125,7 +126,7 @@ wlr-randr \
     --output HDMI-A-1 --off
 
 swayidle -w \
-    resume 'wlr-randr --output SPI-1 --on --pos 0,0' &
+    resume 'wlr-randr --output SPI-1 --on --pos 0,0 --transform 180' &
 
 EOF
 
