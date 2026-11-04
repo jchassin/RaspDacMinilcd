@@ -52,6 +52,7 @@ apt-get update
 apt-get install -y \
 device-tree-compiler \
     wlr-randr \
+    wtype \
     swayidle
 
 # --------------------------------------------------------------------
