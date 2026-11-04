@@ -124,7 +124,6 @@ wlr-randr \
     --output HDMI-A-1 --off
 
 swayidle -w \
-    timeout 300 'wlr-randr --output SPI-1 --off' \
     resume 'wlr-randr --output SPI-1 --on --pos 0,0' &
 
 EOF

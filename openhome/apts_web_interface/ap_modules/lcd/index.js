@@ -10,6 +10,35 @@ const fs = require("fs");
 var alsa_state_waiting = false; 
 var filter_type = "?";
 var previous_state = null;
+var previous_elapsed = null;
+var display_on = true;
+var sleep_timer = null;
+const SLEEP_DELAY_MS = 120000;
+
+function wake_display(){
+    display_on = true;
+    if (sleep_timer){ clearTimeout(sleep_timer); sleep_timer = null; }
+    cp.exec('sudo /usr/local/bin/raspdac-display-on', (error, stdout, stderr) => {
+        if (error) {
+            console.warn(stderr || error);
+            return;
+        }
+    });
+}
+
+function schedule_sleep(){
+    if (sleep_timer || !display_on) return;
+    sleep_timer = setTimeout(()=>{
+        sleep_timer = null;
+        display_on = false;
+        cp.exec('sudo /usr/local/bin/raspdac-display-off', (error, stdout, stderr) => {
+            if (error) {
+                console.warn(stderr || error);
+                return;
+            }
+        });
+    }, SLEEP_DELAY_MS);
+}
 
 
 /*
@@ -43,16 +72,17 @@ moode.on("moode_data", function(data){
     
     websocket_interface.broadcast({header:"pushState",arg : parsed_data}); 
 
-    if ( data.state === 'play' && previous_state !== 'play') {
-       cp.exec('sudo /usr/local/bin/raspdac-display-on', (error, stdout, stderr) => {
-          if (error) {
-             console.warn(stderr || error);
-             return;
-          }
-       });
-       //console.log('xset dpms force on');
+    var elapsed = parseFloat(data.elapsed);
+    var active = data.state === 'play' && !isNaN(elapsed) && elapsed !== previous_elapsed;
+
+    if ( active && (!display_on || previous_state !== data.state)) {
+       wake_display();
+    }
+    else if ( !active ) {
+       schedule_sleep();
     }
     previous_state = data.state;
+    previous_elapsed = elapsed;
 });
  
 //moode.on("ready", function(){start_localui(start_lcd)})
