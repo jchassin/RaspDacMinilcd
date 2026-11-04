@@ -9,6 +9,7 @@ const os = require("os")
 const fs = require("fs");
 var alsa_state_waiting = false; 
 var filter_type = "?";
+var previous_state = null;
 
 
 /*
@@ -42,7 +43,7 @@ moode.on("moode_data", function(data){
     
     websocket_interface.broadcast({header:"pushState",arg : parsed_data}); 
 
-    if ( data.state === 'play') {
+    if ( data.state === 'play' && previous_state !== 'play') {
        cp.exec('sudo /usr/local/bin/raspdac-display-on', (error, stdout, stderr) => {
           if (error) {
              console.warn(stderr || error);
@@ -51,6 +52,7 @@ moode.on("moode_data", function(data){
        });
        //console.log('xset dpms force on');
     }
+    previous_state = data.state;
 });
  
 //moode.on("ready", function(){start_localui(start_lcd)})
