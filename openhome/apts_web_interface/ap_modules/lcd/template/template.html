@@ -244,6 +244,10 @@ span.wholetitle span:not(:last-child)::after {content: '-';margin:0px 5px;}
         transform: translate3d(var(--move-initial), 0, 0);
     }
 
+    75% {
+        transform: translate3d(var(--move-final), 0, 0);
+    }
+
     100% {
         transform: translate3d(var(--move-final), 0, 0);
     }
@@ -464,14 +468,14 @@ display:none;
 					for(a of containers){
 						a.innerHTML = parsed_text;
 					}
-				let m = document.getElementById("marquee");
-				if (origin_wholetitletext.getBoundingClientRect().width >= document.body.clientWidth){
-					m.style.setProperty("--ad",`${origin_wholetitletext.innerText.length/3}s`);
-					m.classList.add("autoscroll");
-				}
-				else{
-					m.classList.remove("autoscroll");
-				}
+			}
+			let m = document.getElementById("marquee");
+			if (origin_wholetitletext.getBoundingClientRect().width > m.clientWidth){
+				m.style.setProperty("--ad",`${Math.max(origin_wholetitletext.innerText.length/3, 5)}s`);
+				m.classList.add("autoscroll");
+			}
+			else{
+				m.classList.remove("autoscroll");
 			}
 		}
 		
