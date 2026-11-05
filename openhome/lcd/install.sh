@@ -191,7 +191,14 @@ USER_UID="\$(id -u "\$USER_NAME")"
 export XDG_RUNTIME_DIR="/run/user/\$USER_UID"
 export WAYLAND_DISPLAY="wayland-0"
 
-runuser -u "\$USER_NAME" -- wlopm --on SPI-1
+i=0
+until runuser -u "\$USER_NAME" -- wlopm --on SPI-1 2>/dev/null; do
+    i=\$((i+1))
+    if [ "\$i" -ge 30 ]; then
+        exit 1
+    fi
+    sleep 1
+done
 runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --on --pos 0,0
 runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --transform 180
 EOF
