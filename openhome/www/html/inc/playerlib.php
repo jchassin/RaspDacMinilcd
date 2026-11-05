@@ -1250,7 +1250,7 @@ function parseStatus($resp) {
                 
                 $percent = '10';
 		// Stopped
-		if ($array['state'] == 'stop') {
+		if (($array['state'] ?? '') == 'stop') {
 			$percent = '0';
 			$array['elapsed'] = '0';
 			$array['time'] = '0';
@@ -1263,8 +1263,10 @@ function parseStatus($resp) {
 		}
 		// Song file, Podcsst
 		else {
-			if ($time[0] != '0' && $time[1] != '0') {
-				$percent = round(($time[0] * 100) / $time[1]);
+			$t0 = (float)$time[0];
+			$t1 = isset($time[1]) ? (float)$time[1] : 0.0;
+			if ($t0 > 0 && $t1 > 0) {
+				$percent = round(($t0 * 100) / $t1);
 				$array['elapsed'] = (isset($array['elapsed']) && $array['elapsed'] !== '') ? $array['elapsed'] : $time[0];
 				$array['time'] = $time[1];
 			}
