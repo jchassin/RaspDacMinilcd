@@ -117,8 +117,10 @@ sleep 2
 
 wlr-randr \
     --output SPI-1 --on \
-    --pos 0,0 \
-    --transform 180
+    --pos 0,0
+
+wlr-randr \
+    --output SPI-1 --transform 180
 
 sleep 3
 
@@ -126,7 +128,7 @@ wlr-randr \
     --output HDMI-A-1 --off
 
 swayidle -w \
-    resume 'wlr-randr --output SPI-1 --on --pos 0,0 --transform 180' &
+    resume 'wlr-randr --output SPI-1 --on --pos 0,0; wlopm --on SPI-1; wlr-randr --output SPI-1 --transform 180' &
 
 EOF
 
@@ -173,7 +175,8 @@ USER_UID="\$(id -u "\$USER_NAME")"
 export XDG_RUNTIME_DIR="/run/user/\$USER_UID"
 export WAYLAND_DISPLAY="wayland-0"
 
-exec runuser -u "\$USER_NAME" -- wlopm --on SPI-1
+runuser -u "\$USER_NAME" -- wlopm --on SPI-1
+runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --on --pos 0,0
 EOF
 
 cat > "$DISPLAY_OFF_SCRIPT" <<EOF
