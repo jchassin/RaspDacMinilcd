@@ -211,6 +211,7 @@ span.wholetitle span:not(:last-child)::after {content: '-';margin:0px 5px;}
     overflow: hidden;
     white-space: nowrap;
     text-align: center;
+    max-width: 100%;
 }
 
 #marquee.autoscroll {
@@ -218,21 +219,22 @@ span.wholetitle span:not(:last-child)::after {content: '-';margin:0px 5px;}
 }
 
 .marquee__inner {
-    display: inline-block;
+    display: block;
+    width: 100%;
     white-space: nowrap;
     position: relative;
-    will-change: transform;
 }
 
-.autoscroll > .marquee__inner {
-    animation: marquee var(--ad, 20s) linear infinite;
-}
-
-.autoscroll > .marquee__inner > .wholetitle {
-    padding-right: 10vw;
+.marquee__inner > .wholetitle {
+    display: inline-block;
 }
 
 .wholetitle:not(:first-child) {display: none;}
+
+#marquee.autoscroll .marquee__inner > .wholetitle {
+    padding-right: 10vw;
+    animation: marquee var(--ad, 20s) linear infinite;
+}
 
 @keyframes marquee {
     0% {
