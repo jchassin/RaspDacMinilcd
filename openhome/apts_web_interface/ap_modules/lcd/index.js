@@ -10,6 +10,7 @@ const fs = require("fs");
 var alsa_state_waiting = false; 
 var filter_type = "?";
 var previous_state = null;
+var previous_elapsed = null;
 var display_on = true;
 var sleep_timer = null;
 const SLEEP_DELAY_MS = 120000;
@@ -71,7 +72,9 @@ moode.on("moode_data", function(data){
     
     websocket_interface.broadcast({header:"pushState",arg : parsed_data}); 
 
-    var active = data.state === 'play';
+    var elapsed = parseFloat(data.elapsed);
+    var bitrate = parseFloat(data.bitrate);
+    var active = data.state === 'play' && (bitrate > 0 || (!isNaN(elapsed) && elapsed !== previous_elapsed));
 
     if ( active && (!display_on || previous_state !== data.state)) {
        wake_display();
@@ -80,6 +83,7 @@ moode.on("moode_data", function(data){
        schedule_sleep();
     }
     previous_state = data.state;
+    previous_elapsed = elapsed;
 });
  
 //moode.on("ready", function(){start_localui(start_lcd)})
