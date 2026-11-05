@@ -465,7 +465,7 @@ display:none;
 					}
 			}
 			let m = document.getElementById("marquee");
-			let overflow = origin_wholetitletext.scrollWidth - m.clientWidth;
+			let overflow = origin_wholetitletext.getBoundingClientRect().width - m.clientWidth;
 			if (overflow > 0){
 				m.style.setProperty("--scroll", `-${overflow}px`);
 				m.style.setProperty("--ad",`${Math.max(overflow/60 + 3, 5)}s`);
