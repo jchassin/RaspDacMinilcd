@@ -128,6 +128,7 @@ wlr-randr \
     --output HDMI-A-1 --off
 
 swayidle -w \
+    timeout 1 true \
     resume 'wlr-randr --output SPI-1 --on --pos 0,0; wlopm --on SPI-1; wlr-randr --output SPI-1 --transform 180' &
 
 EOF
@@ -139,10 +140,8 @@ chmod 0755 "$DISPLAY_SCRIPT"
 touch "$AUTOSTART"
 chown "$TARGET_USER:$TARGET_USER" "$AUTOSTART"
 
-AUTOSTART_LINE="${DISPLAY_SCRIPT} &"
-
-if ! grep -Fxq "$AUTOSTART_LINE" "$AUTOSTART"; then
-    printf '\n%s\n' "$AUTOSTART_LINE" >> "$AUTOSTART"
+if ! grep -q "raspdac-display.sh" "$AUTOSTART"; then
+    printf '\n%s &\n' "$DISPLAY_SCRIPT" >> "$AUTOSTART"
 fi
 
 
