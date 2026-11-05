@@ -52,6 +52,7 @@ function schedule_sleep(){
  
 var moode = new moode_listener();
 moode.on("moode_data", function(data){ 
+    if (!data || data.state === undefined) return;
 
     // parse data in known dict so we only need to use one template for volumio & moode
     let parsed_data = {};

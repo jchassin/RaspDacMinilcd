@@ -68,7 +68,12 @@ moode_listener.prototype.send_req = function(path,callback){
         }
       });
     }
-    let req = http.request(options, handle_response).end();
+    let req = http.request(options, handle_response);
+    req.on("error", (e)=>{
+        console.warn("moode request error:", e.message);
+        if(typeof callback==="function") callback("");
+    });
+    req.end();
 }
 
 moode_listener.prototype.auth = function(start_lcd){
@@ -88,11 +93,12 @@ moode_listener.prototype.get_data = function(path,callback){
     this.send_req(path, handle_response );
     function handle_response(data){
         try{
-            //console.warn("jean request", path)
-            //console.warn("data to parse", data) 
             data = JSON.parse(data);
             callback(data);
-        }catch(e){console.warn("fatal error, cannot read data from moode", e)}
+        }catch(e){
+            console.warn("cannot read data from moode:", e.message);
+            callback(null);
+        }
     }
 }
 
@@ -103,7 +109,7 @@ moode_listener.prototype.listen = function(){
         this.waiting = true;
         this.get_data("engine-mpd.php", (data)=>{
             this.waiting = false;
-            this.emit("moode_data",data)
+            if(data) this.emit("moode_data",data)
         });
 
     },1000);
