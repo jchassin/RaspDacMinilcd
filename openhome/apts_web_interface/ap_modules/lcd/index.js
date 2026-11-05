@@ -84,7 +84,9 @@ moode.on("moode_data", function(data){
     previous_state = data.state;
     previous_elapsed = elapsed;
 });
- 
+
+wake_display();
+
 //moode.on("ready", function(){start_localui(start_lcd)})
 
 

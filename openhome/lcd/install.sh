@@ -112,12 +112,15 @@ install -d -m 0755 -o "$TARGET_USER" -g "$TARGET_USER" "$LABWC_DIR"
 cat > "$DISPLAY_SCRIPT" <<'EOF'
 #!/bin/sh
 
-# Wait until labwc/wlroots has created its outputs.
-sleep 2
-
-wlr-randr \
-    --output SPI-1 --on \
-    --pos 0,0
+# Wait until labwc/wlroots has created its outputs, then enable SPI-1.
+i=0
+until wlr-randr --output SPI-1 --on --pos 0,0 2>/dev/null; do
+    i=$((i+1))
+    if [ "$i" -ge 30 ]; then
+        break
+    fi
+    sleep 1
+done
 
 wlr-randr \
     --output SPI-1 --transform 180
