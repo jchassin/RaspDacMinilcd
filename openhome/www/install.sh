@@ -6,7 +6,7 @@ echo "" > install_log.txt
 
 # ---------------------------------------------------
 # Make the control script a global command
-rsync -a --delete \
+rsync -a \
     --chown=root:www-data \
     "./html/" \
     /var/www/html/
