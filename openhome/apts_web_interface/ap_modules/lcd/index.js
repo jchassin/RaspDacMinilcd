@@ -192,7 +192,7 @@ exports.catch_url = function(url,req,res){
 				}
 				else{
 					let fileStream = fs.createReadStream(path);
-					res.writeHead(200, {"Content-Type": "text/html"});
+					res.writeHead(200, {"Content-Type": "text/html", "Cache-Control": "no-store"});
 					res.write(`<script type="application/javascript">${websocket_interface.ws_client()}</script>`);
 					res.write(`<script type="application/javascript">var filter_type="${filter_type}"</script>`);
 					fileStream.pipe(res);

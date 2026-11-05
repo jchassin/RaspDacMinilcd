@@ -209,47 +209,42 @@ span.wholetitle span:not(:last-child)::after {content: '-';margin:0px 5px;}
 #marquee {
     position: relative;
     overflow: hidden;
-    --offset: 0vw;
-    --move-initial: calc(-25% + var(--offset));
-    --move-final: calc(-50% + var(--offset));
+    white-space: nowrap;
+    text-align: center;
+}
+
+#marquee.autoscroll {
+    text-align: left;
 }
 
 .marquee__inner {
+    display: inline-block;
     white-space: nowrap;
-    width:100%;
-    display: flex;
     position: relative;
-    justify-content:center;
-
+    will-change: transform;
 }
 
-.autoscroll>.marquee__inner {
-    justify-content:unset;
-    width: fit-content;
-    animation: marquee var(--ad) linear infinite;
-    transform: translate3d(var(--move-initial), 0, 0);
+.autoscroll > .marquee__inner {
+    animation: marquee var(--ad, 20s) linear infinite;
 }
 
-.autoscroll >.marquee__inner > .wholetitle {
-    padding: 0 10vw;
+.autoscroll > .marquee__inner > .wholetitle {
+    padding-right: 10vw;
 }
 
 .wholetitle:not(:first-child) {display: none;}
-.autoscroll >.marquee__inner > .wholetitle:not(:first-child) {display: unset;}
-
-
 
 @keyframes marquee {
     0% {
-        transform: translate3d(var(--move-initial), 0, 0);
+        transform: translateX(0);
     }
 
-    75% {
-        transform: translate3d(var(--move-final), 0, 0);
+    70% {
+        transform: translateX(var(--scroll, -100%));
     }
 
     100% {
-        transform: translate3d(var(--move-final), 0, 0);
+        transform: translateX(var(--scroll, -100%));
     }
 }
 
@@ -470,8 +465,10 @@ display:none;
 					}
 			}
 			let m = document.getElementById("marquee");
-			if (origin_wholetitletext.getBoundingClientRect().width > m.clientWidth){
-				m.style.setProperty("--ad",`${Math.max(origin_wholetitletext.innerText.length/3, 5)}s`);
+			let overflow = origin_wholetitletext.scrollWidth - m.clientWidth;
+			if (overflow > 0){
+				m.style.setProperty("--scroll", `-${overflow}px`);
+				m.style.setProperty("--ad",`${Math.max(overflow/60 + 3, 5)}s`);
 				m.classList.add("autoscroll");
 			}
 			else{
