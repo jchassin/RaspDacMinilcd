@@ -30,6 +30,7 @@ function moode_listener(host,refreshrate_ms){
     this.ready = false;
     this.waiting = false;
     this.initiate = true;
+    this.last_parse_warn = 0;
 }
 
 inherits(moode_listener, EventEmitter);
@@ -92,11 +93,16 @@ moode_listener.prototype.get_data = function(path,callback){
     let self = this;
     this.send_req(path, handle_response );
     function handle_response(data){
+        if (!data){ callback(null); return; }
         try{
             data = JSON.parse(data);
             callback(data);
         }catch(e){
-            console.warn("cannot read data from moode:", e.message);
+            let now = Date.now();
+            if (now - self.last_parse_warn > 30000){
+                self.last_parse_warn = now;
+                console.warn("cannot read data from moode:", e.message, "| body:", data.slice(0,120));
+            }
             callback(null);
         }
     }
