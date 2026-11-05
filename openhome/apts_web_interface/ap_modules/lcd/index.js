@@ -73,8 +73,7 @@ moode.on("moode_data", function(data){
     websocket_interface.broadcast({header:"pushState",arg : parsed_data}); 
 
     var elapsed = parseFloat(data.elapsed);
-    var bitrate = parseFloat(data.bitrate);
-    var active = data.state === 'play' && (bitrate > 0 || (!isNaN(elapsed) && elapsed !== previous_elapsed));
+    var active = data.state === 'play' && !isNaN(elapsed) && elapsed !== previous_elapsed;
 
     if ( active && (!display_on || previous_state !== data.state)) {
        wake_display();
