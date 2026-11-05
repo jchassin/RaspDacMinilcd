@@ -136,8 +136,22 @@ EOF
 chown "$TARGET_USER:$TARGET_USER" "$DISPLAY_SCRIPT"
 chmod 0755 "$DISPLAY_SCRIPT"
 
-# Preserve existing labwc autostart.
+# Preserve existing labwc autostart, but drop previous RaspDAC entries
+# (old raspdac-display.sh lines and old swayidle blocks blanking SPI-1).
 touch "$AUTOSTART"
+awk '
+/raspdac-display\.sh/ {next}
+/^[[:space:]]*swayidle/ {
+    if ($0 ~ /\\$/) skip=1
+    next
+}
+skip==1 {
+    if ($0 ~ /\\$/) next
+    skip=0
+    next
+}
+{print}
+' "$AUTOSTART" > "$AUTOSTART.raspdac-tmp" && mv "$AUTOSTART.raspdac-tmp" "$AUTOSTART"
 chown "$TARGET_USER:$TARGET_USER" "$AUTOSTART"
 
 if ! grep -q "raspdac-display.sh" "$AUTOSTART"; then
