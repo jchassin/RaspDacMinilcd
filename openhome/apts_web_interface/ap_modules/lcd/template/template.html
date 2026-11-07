@@ -429,6 +429,14 @@ display:none;
 		filter_container.innerText = filter_type;
 
 		if (location.hash.indexOf("debug") !== -1){
+			let frames = 0;
+			let t0 = performance.now();
+			function count(){
+				frames++;
+				if (performance.now() - t0 < 3000) requestAnimationFrame(count);
+				else console.log("DEBUGFPS " + (frames/3).toFixed(1) + " vis=" + document.visibilityState + " focus=" + document.hasFocus());
+			}
+			requestAnimationFrame(count);
 			setTimeout(()=>{
 				let m = document.getElementById("marquee");
 				console.log("DEBUGMETRICS " + JSON.stringify({
