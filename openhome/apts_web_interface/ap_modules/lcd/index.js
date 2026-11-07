@@ -9,6 +9,7 @@ const cp = require("child_process");
 const os = require("os")
 const fs = require("fs");
 const http = require("http");
+const https = require("https");
 var alsa_state_waiting = false; 
 var filter_type = "?";
 var previous_state = null;
@@ -206,7 +207,8 @@ exports.catch_url = function(url,req,res){
 			if(url[1] && url[1].split("?")[0] === "coverproxy"){
 				let target = decodeURIComponent((req.url.split("?u=")[1] || ""));
 				if(!target){ res.writeHead(400); res.end(); return; }
-				http.get(target, (up)=>{
+				let client = target.startsWith("https:") ? https : http;
+				client.get(target, (up)=>{
 					res.writeHead(200, {"Content-Type": up.headers["content-type"] || "image/jpeg", "Cache-Control": "public, max-age=86400"});
 					up.pipe(res);
 				}).on("error", ()=>{ res.writeHead(502); res.end(); });
