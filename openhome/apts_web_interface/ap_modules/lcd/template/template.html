@@ -114,6 +114,12 @@ img#cover_artwork_blur{
 	position:relative;
 	color :white;
 	padding: 5px;
+	transition: opacity 0.5s ease;
+}
+
+.top.hiddenbar{
+	opacity: 0;
+	pointer-events: none;
 }
 
 .top > div{
@@ -391,6 +397,8 @@ display:none;
 		const elapsed_text = document.getElementById("elapsed_text");
 		const tech_text = document.getElementById("tech_text");
 		const duration_text = document.getElementById("duration_text");
+		const top_bar = document.querySelector(".top");
+		var topbar_timer = null;
 		const volume_text = document.getElementById("volume_text");
 		const state_icon = document.getElementById("state_icon");
 		const volume_icon = document.getElementById("volume_icon");
@@ -454,6 +462,7 @@ display:none;
 		setInterval( updateclock,30000 );
 		updateclock();  
 		filter_container.innerText = filter_type;
+		poke_topbar();
 
 		if (location.hash.indexOf("debug") !== -1){
 			let frames = 0;
@@ -615,6 +624,7 @@ display:none;
 		function update_state(new_data){
 			if(!new_data || !new_data.status) return stop();
 			if( new_data.status === current_data.status ) return;
+			poke_topbar();
 			if(new_data.status === "play") logo_play();
 			else if( new_data.status === "pause" ) logo_pause();
 			else if( new_data.status === "stop" ) logo_stop();
@@ -623,13 +633,19 @@ display:none;
 		function update_volume(new_data){
 			if(!new_data || !new_data.volume) return;
 			if( new_data.volume === current_data.volume ) return;
-			
+			poke_topbar();
 			if(new_data.volume >= 66) 		high_volume();
 			else if(new_data.volume >= 33) 	medium_volume();
 			else 							low_volume();
             let volume = new_data.volume;
             if (volume < 10) volume = leadingZero(volume,2);
 			volume_text.innerText = volume;
+		}
+
+		function poke_topbar(){
+			top_bar.classList.remove("hiddenbar");
+			if (topbar_timer) clearTimeout(topbar_timer);
+			topbar_timer = setTimeout(()=>{ top_bar.classList.add("hiddenbar"); }, 10000);
 		}
 
 		function fmt_time(sec){
