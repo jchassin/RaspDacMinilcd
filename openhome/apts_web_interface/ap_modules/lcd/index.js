@@ -8,6 +8,7 @@ const moode_listener = require("./moode_listener.js").moode_listener;
 const cp = require("child_process");
 const os = require("os")
 const fs = require("fs");
+const http = require("http");
 var alsa_state_waiting = false; 
 var filter_type = "?";
 var previous_state = null;
@@ -202,6 +203,14 @@ exports.catch_url = function(url,req,res){
 		
 		}
 		else{
+			if(url[1] === "coverproxy"){
+				let target = decodeURIComponent((req.url.split("?u=")[1] || ""));
+				if(!target){ res.writeHead(400); res.end(); return; }
+				http.get(target, (up)=>{
+					res.writeHead(200, {"Content-Type": up.headers["content-type"] || "image/jpeg", "Cache-Control": "public, max-age=86400"});
+					up.pipe(res);
+				}).on("error", ()=>{ res.writeHead(502); res.end(); });
+			}
 			if(url[1] === "switch_view"){
 				console.log("view")
 				websocket_interface.broadcast({header:"switch_view",arg : null});

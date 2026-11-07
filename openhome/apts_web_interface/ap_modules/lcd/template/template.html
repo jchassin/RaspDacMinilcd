@@ -536,7 +536,7 @@ display:none;
 				return
 			}
 			if( new_data.albumart != current_data.albumart ){
-				let src = /http(s?):\/\//.test(new_data.albumart)?new_data.albumart:"http://"+location.hostname+new_data.albumart;
+				let src = /http(s?):\/\//.test(new_data.albumart)? "/ap-display/coverproxy?u="+encodeURIComponent(new_data.albumart) : "http://"+location.hostname+new_data.albumart;
 				cover_img.src = src;
 				cover_img_blur.src = src;
 			}
