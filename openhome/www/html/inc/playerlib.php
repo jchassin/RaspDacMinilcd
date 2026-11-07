@@ -1223,7 +1223,7 @@ function songTime($sec) {
 
 // Format MPD status output
 function parseStatus($resp) {
-        workerLog('parseStatus(): parseStatus');
+        //workerLog('parseStatus(): parseStatus');
 
 	// This return probably needs a redo
 	if (is_null($resp)) {
@@ -1402,7 +1402,7 @@ function parseHwParams($resp) {
 function parseCurrentSong($sock) {
 	sendMpdCmd($sock, 'currentsong');
 	$resp = readMpdResp($sock);
-	workerLog('parseCurrentSong : ' . $resp);
+	//workerLog('parseCurrentSong : ' . $resp);
 
 	$artist_count = 0;
 
@@ -1415,7 +1415,7 @@ function parseCurrentSong($sock) {
 
 		while ($line) {
 			list ($element, $value) = explode(": ", $line, 2);
-                        workerLog('currentsong : element : ' . $element . ' value : ' . $value);
+                        //workerLog('currentsong : element : ' . $element . ' value : ' . $value);
 	
 
 			// NOTE: Let's save this for future use
@@ -1442,7 +1442,7 @@ function parseCurrentSong($sock) {
 			else {
 				$array[$element] = $value;
 			}
-                        workerLog('currentsong : element : ' . $element . ' value : ' . $array[$element]);
+                        //workerLog('currentsong : element : ' . $element . ' value : ' . $array[$element]);
 
 			$line = strtok("\n");
 		}
