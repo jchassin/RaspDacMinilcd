@@ -65,7 +65,7 @@ moode.on("moode_data", function(data){
     parsed_data.title = data.title || null;
     parsed_data.status = data.state || null;
     parsed_data.volume = data.volume || null;
-    //parsed_data.seek = data.elapsed*1000 || null;
+    parsed_data.seek = (data.elapsed !== undefined && data.elapsed !== null && data.elapsed !== "") ? parseFloat(data.elapsed)*1000 : null;
     parsed_data.duration = data.duration|| null;
     parsed_data.bitrate = data.bitrate|| null;
     parsed_data.samplerate = data.audio_sample_rate|| null;

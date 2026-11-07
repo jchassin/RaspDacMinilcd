@@ -173,6 +173,15 @@ input[type=range]#seek {
     box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
 }
 
+@keyframes seeksweep {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(318px); }
+}
+
+input[type=range]#seek.live::-webkit-slider-thumb {
+    animation: seeksweep 10s linear infinite;
+}
+
 input[type=range]#seek::-webkit-slider-runnable-track {
  	-webkit-appearance:none;
  	height: 3px;
@@ -567,8 +576,19 @@ display:none;
 		}
 
 		function update_seek(new_data){
-			if(new_data.seek != current_data.seek && new_data.duration ){
-				seek_bar.value = parseInt(new_data.seek / (new_data.duration*1000) * 100);
+			if(new_data.seek === null || new_data.seek === undefined){
+				seek_bar.classList.remove("live");
+				seek_bar.value = 0;
+				return;
+			}
+			if(new_data.duration && parseFloat(new_data.duration) > 0){
+				seek_bar.classList.remove("live");
+				if(new_data.seek != current_data.seek){
+					seek_bar.value = parseInt(new_data.seek / (parseFloat(new_data.duration)*1000) * 100);
+				}
+			}
+			else{
+				seek_bar.classList.add("live");
 			}
 		}
 		
