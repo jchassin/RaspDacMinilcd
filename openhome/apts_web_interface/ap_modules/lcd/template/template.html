@@ -187,6 +187,14 @@ input[type=range]#seek {
     padding: 0 5px;
 }
 
+#tech_text {
+    transition: opacity 0.5s ease;
+}
+
+#tech_text.hiddenbar {
+    opacity: 0;
+}
+
 @keyframes seeksweep {
     0% { transform: translateX(0); }
     100% { transform: translateX(318px); }
@@ -507,6 +515,7 @@ display:none;
 			if (now - last_switch < 800) return;
 			last_switch = now;
 			poke_topbar();
+			poke_tech();
 			let c = document.querySelector(".cube");
 			c.classList.add("troisDloin");
 			setTimeout( ()=>{c.classList.remove("troisDloin");}, 1000 )
@@ -586,6 +595,7 @@ display:none;
 					for(a of containers){
 						a.innerHTML = parsed_text;
 					}
+					poke_tech();
 			}
 			let m = document.getElementById("marquee");
 			let overflow = origin_wholetitletext.getBoundingClientRect().width - m.clientWidth;
@@ -651,6 +661,13 @@ display:none;
 			top_bar.classList.remove("hiddenbar");
 			if (topbar_timer) clearTimeout(topbar_timer);
 			topbar_timer = setTimeout(()=>{ top_bar.classList.add("hiddenbar"); }, 10000);
+		}
+
+		var tech_timer = null;
+		function poke_tech(){
+			tech_text.classList.remove("hiddenbar");
+			if (tech_timer) clearTimeout(tech_timer);
+			tech_timer = setTimeout(()=>{ tech_text.classList.add("hiddenbar"); }, 10000);
 		}
 
 		function fmt_time(sec){
