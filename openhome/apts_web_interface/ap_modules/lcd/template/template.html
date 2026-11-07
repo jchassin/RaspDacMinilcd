@@ -546,7 +546,7 @@ display:none;
 				for(let i = 0; i < d.length; i += 4){ r += d[i]; g += d[i+1]; b += d[i+2]; n++; }
 				r = Math.round(r/n); g = Math.round(g/n); b = Math.round(b/n);
 				let [h,s,l] = rgbToHsl(r,g,b);
-				let rgb = hslToRgb(h, Math.max(s,0.45), 0.7);
+				let rgb = hslToRgb(h, s < 0.2 ? 0 : Math.max(s, 0.35), 0.7);
 				seek_bar.style.setProperty("--seek-color", `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`);
 			}catch(e){ }
 		}
