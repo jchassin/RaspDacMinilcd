@@ -388,11 +388,12 @@ display:none;
 		var lastAutoscroll = false;
 		var lastScroll = "";
 		var lastAd = "";
+		var COM = null;
 
         
         function init_COM(){
             console.log("connection");
-            let COM  = new socket_handler();
+            COM = new socket_handler();
             COM.addEventListener("ip", (ip)=>{ip_container.innerText = ip});
             COM.addEventListener("input", (input)=>{
                 if(input === "'SPDIF'\n"){
@@ -431,12 +432,16 @@ display:none;
 			function count(){
 				frames++;
 				if (performance.now() - t0 < 3000) requestAnimationFrame(count);
-				else console.log("DEBUGFPS " + (frames/3).toFixed(1) + " vis=" + document.visibilityState + " focus=" + document.hasFocus());
+				else{
+					let fps = {fps: +(frames/3).toFixed(1), vis: document.visibilityState, focus: document.hasFocus()};
+					console.log("DEBUGFPS", JSON.stringify(fps));
+					if (COM) COM.send("debugmetrics", fps);
+				}
 			}
 			requestAnimationFrame(count);
 			setTimeout(()=>{
 				let m = document.getElementById("marquee");
-				console.log("DEBUGMETRICS " + JSON.stringify({
+				let metrics = {
 					iw: window.innerWidth, ih: window.innerHeight, dpr: window.devicePixelRatio,
 					bodyScrollW: document.body.scrollWidth, bodyClientW: document.body.clientWidth,
 					face: document.querySelector(".cube__face--front").getBoundingClientRect().toJSON(),
@@ -445,7 +450,9 @@ display:none;
 					marquee: m.getBoundingClientRect().toJSON(),
 					spanW: origin_wholetitletext.getBoundingClientRect().width,
 					autoscroll: m.classList.contains("autoscroll")
-				}));
+				};
+				console.log("DEBUGMETRICS " + JSON.stringify(metrics));
+				if (COM) COM.send("debugmetrics", metrics);
 			}, 3000);
 		}
 		

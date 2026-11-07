@@ -1,6 +1,7 @@
 exports.module_head = `<div class="content_name"><h2>LCD</h2><p>Configuration for LCD display</p></div>`
 const WEBSOCKET_INTERFACE = require("./websocket_interface.js").ws_interface;
 const websocket_interface = new WEBSOCKET_INTERFACE(4152);
+websocket_interface.on("debugmetrics", (ws, a)=>{ console.log("DEBUGMETRICS", JSON.stringify(a)); });
 const moode_listener = require("./moode_listener.js").moode_listener;
 
 
