@@ -497,7 +497,7 @@ display:none;
 			}
 			if (wantScroll){
 				let scroll = `-${Math.round(overflow)}px`;
-				let ad = `${Math.max(overflow/60 + 3, 5)}s`;
+				let ad = `${Math.max(overflow/100, 3)}s`;
 				if (scroll !== lastScroll){ m.style.setProperty("--scroll", scroll); lastScroll = scroll; }
 				if (ad !== lastAd){ m.style.setProperty("--ad", ad); lastAd = ad; }
 			}
