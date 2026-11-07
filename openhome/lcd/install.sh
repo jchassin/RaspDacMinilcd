@@ -96,7 +96,7 @@ add_config_line()
 add_config_line "dtparam=spi=on"
 add_config_line "dtoverlay=vc4-kms-v3d,noaudio"
 add_config_line "max_framebuffers=2"
-add_config_line "dtoverlay=raspdac-mini-ili9341,rotate=270"
+add_config_line "dtoverlay=raspdac-mini-ili9341,rotate=270,speed=32000000"
 
 # --------------------------------------------------------------------
 # labwc configuration
