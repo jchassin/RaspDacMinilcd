@@ -203,7 +203,7 @@ exports.catch_url = function(url,req,res){
 		
 		}
 		else{
-			if(url[1] === "coverproxy"){
+			if(url[1] && url[1].split("?")[0] === "coverproxy"){
 				let target = decodeURIComponent((req.url.split("?u=")[1] || ""));
 				if(!target){ res.writeHead(400); res.end(); return; }
 				http.get(target, (up)=>{
