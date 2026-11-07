@@ -11,28 +11,20 @@
 .cube {
   width: 100vw;
   height: 100vh;
-  transform-style: preserve-3d;
-  transform: translateZ(-50vw);
-  transition: transform 1s;
 }
 
-.cube.show-front  { transform: translateZ(  calc(-1 * var(--perspective_ratio) )  ) rotateY(   0deg); }
-.cube.show-bottom { transform: translateZ(  calc(-1 * var(--perspective_ratio) )  ) rotateX(  90deg); }
-
 .cube__face {
-overflow:hidden;
+  overflow: hidden;
   position: absolute;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
   background: black;
 }
 
-.cube__face--front  {transform: rotateY(  0deg) translateZ( var(--perspective_ratio) ) ;}
-.cube__face--bottom {transform: rotateX(-90deg) translateZ( var(--perspective_ratio) ) ;}
-
-
-.cube.show-front.troisDloin{ transform: translateZ(  calc(-2 * var(--perspective_ratio) )  ) rotateY(   0deg); }
-.cube.show-bottom.troisDloin{ transform: translateZ(  calc(-2 * var(--perspective_ratio) )  ) rotateX(  90deg); }
+.cube.show-front  .cube__face--bottom { display: none; }
+.cube.show-bottom .cube__face--front  { display: none; }
 
 
 body{
