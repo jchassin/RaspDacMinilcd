@@ -123,6 +123,9 @@ until wlr-randr --output SPI-1 --on --pos 0,0 2>/dev/null; do
 done
 
 wlr-randr \
+    --output SPI-1 --custom-mode 320x240
+
+wlr-randr \
     --output SPI-1 
 
 sleep 3
