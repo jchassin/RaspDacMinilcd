@@ -96,7 +96,7 @@ add_config_line()
 add_config_line "dtparam=spi=on"
 add_config_line "dtoverlay=vc4-kms-v3d,noaudio"
 add_config_line "max_framebuffers=2"
-add_config_line "dtoverlay=raspdac-mini-ili9341"
+add_config_line "dtoverlay=raspdac-mini-ili9341,rotate=270,speed=32000000"
 
 # --------------------------------------------------------------------
 # labwc configuration
@@ -112,12 +112,21 @@ install -d -m 0755 -o "$TARGET_USER" -g "$TARGET_USER" "$LABWC_DIR"
 cat > "$DISPLAY_SCRIPT" <<'EOF'
 #!/bin/sh
 
-# Wait until labwc/wlroots has created its outputs.
-sleep 2
+# Wait until labwc/wlroots has created its outputs, then enable SPI-1.
+i=0
+until wlr-randr --output SPI-1 --on --pos 0,0 2>/dev/null; do
+    i=$((i+1))
+    if [ "$i" -ge 30 ]; then
+        break
+    fi
+    sleep 1
+done
 
 wlr-randr \
-    --output SPI-1 --on \
-    --pos 0,0
+    --output SPI-1 --custom-mode 320x240
+
+wlr-randr \
+    --output SPI-1 
 
 sleep 3
 
@@ -125,22 +134,34 @@ wlr-randr \
     --output HDMI-A-1 --off
 
 swayidle -w \
-    timeout 300 'wlr-randr --output SPI-1 --off' \
-    resume 'wlr-randr --output SPI-1 --on --pos 0,0' &
+    timeout 1 true \
+    resume 'wlr-randr --output SPI-1 --on --pos 0,0; wlopm --on SPI-1; wlr-randr --output SPI-1' &
 
 EOF
-
+#    resume 'wlr-randr --output SPI-1 --on --pos 0,0; wlopm --on SPI-1; wlr-randr --output SPI-1 --transform 180' &
 chown "$TARGET_USER:$TARGET_USER" "$DISPLAY_SCRIPT"
 chmod 0755 "$DISPLAY_SCRIPT"
 
-# Preserve existing labwc autostart.
+# Preserve existing labwc autostart, but drop previous RaspDAC entries
+# (old raspdac-display.sh lines and old swayidle blocks blanking SPI-1).
 touch "$AUTOSTART"
+awk '
+/raspdac-display\.sh/ {next}
+/^[[:space:]]*swayidle/ {
+    if ($0 ~ /\\$/) skip=1
+    next
+}
+skip==1 {
+    if ($0 ~ /\\$/) next
+    skip=0
+    next
+}
+{print}
+' "$AUTOSTART" > "$AUTOSTART.raspdac-tmp" && mv "$AUTOSTART.raspdac-tmp" "$AUTOSTART"
 chown "$TARGET_USER:$TARGET_USER" "$AUTOSTART"
 
-AUTOSTART_LINE="${DISPLAY_SCRIPT} &"
-
-if ! grep -Fxq "$AUTOSTART_LINE" "$AUTOSTART"; then
-    printf '\n%s\n' "$AUTOSTART_LINE" >> "$AUTOSTART"
+if ! grep -q "raspdac-display.sh" "$AUTOSTART"; then
+    printf '\n%s &\n' "$DISPLAY_SCRIPT" >> "$AUTOSTART"
 fi
 
 
@@ -173,7 +194,17 @@ USER_UID="\$(id -u "\$USER_NAME")"
 export XDG_RUNTIME_DIR="/run/user/\$USER_UID"
 export WAYLAND_DISPLAY="wayland-0"
 
-exec runuser -u "\$USER_NAME" -- wlopm --on SPI-1
+i=0
+until runuser -u "\$USER_NAME" -- wlopm --on SPI-1 2>/dev/null; do
+    i=\$((i+1))
+    if [ "\$i" -ge 30 ]; then
+        exit 1
+    fi
+    sleep 1
+done
+runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --on --pos 0,0
+#runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --transform 180
+runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 
 EOF
 
 cat > "$DISPLAY_OFF_SCRIPT" <<EOF

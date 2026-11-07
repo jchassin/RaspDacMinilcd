@@ -1223,7 +1223,7 @@ function songTime($sec) {
 
 // Format MPD status output
 function parseStatus($resp) {
-        workerLog('parseStatus(): parseStatus');
+        //workerLog('parseStatus(): parseStatus');
 
 	// This return probably needs a redo
 	if (is_null($resp)) {
@@ -1246,11 +1246,11 @@ function parseStatus($resp) {
 		// Podcast same as song.
 		// If state is stop then time, elapsed and duration are not present
 		// Time x:y where x = elapsed ss, y = duration ss
-		$time = explode(':', $array['time']);
+		$time = isset($array['time']) ? explode(':', $array['time']) : array('', '');
                 
                 $percent = '10';
 		// Stopped
-		if ($array['state'] == 'stop') {
+		if (($array['state'] ?? '') == 'stop') {
 			$percent = '0';
 			$array['elapsed'] = '0';
 			$array['time'] = '0';
@@ -1258,19 +1258,21 @@ function parseStatus($resp) {
 		// Radio, UPnP
 		elseif (!isset($array['duration']) || $array['duration'] == 0) { // @ohinckel https: //github.com/moode-player/moode/pull/13
 			$percent = '0';
-			$array['elapsed'] = $time[0];
+			$array['elapsed'] = (isset($array['elapsed']) && $array['elapsed'] !== '') ? $array['elapsed'] : $time[0];
 			$array['time'] = $time[1];
 		}
 		// Song file, Podcsst
 		else {
-			if ($time[0] != '0' && $time[1] != '0') {
-				$percent = round(($time[0] * 100) / $time[1]);
-				$array['elapsed'] = $time[0];
+			$t0 = (float)$time[0];
+			$t1 = isset($time[1]) ? (float)$time[1] : 0.0;
+			if ($t0 > 0 && $t1 > 0) {
+				$percent = round(($t0 * 100) / $t1);
+				$array['elapsed'] = (isset($array['elapsed']) && $array['elapsed'] !== '') ? $array['elapsed'] : $time[0];
 				$array['time'] = $time[1];
 			}
 			else {
 				$percent = '0';
-				$array['elapsed'] = $time[0];
+				$array['elapsed'] = (isset($array['elapsed']) && $array['elapsed'] !== '') ? $array['elapsed'] : $time[0];
 				$array['time'] = $time[1];
 			}
 		}
@@ -1400,7 +1402,7 @@ function parseHwParams($resp) {
 function parseCurrentSong($sock) {
 	sendMpdCmd($sock, 'currentsong');
 	$resp = readMpdResp($sock);
-	workerLog('parseCurrentSong : ' . $resp);
+	//workerLog('parseCurrentSong : ' . $resp);
 
 	$artist_count = 0;
 
@@ -1413,7 +1415,7 @@ function parseCurrentSong($sock) {
 
 		while ($line) {
 			list ($element, $value) = explode(": ", $line, 2);
-                        workerLog('currentsong : element : ' . $element . ' value : ' . $value);
+                        //workerLog('currentsong : element : ' . $element . ' value : ' . $value);
 	
 
 			// NOTE: Let's save this for future use
@@ -1440,7 +1442,7 @@ function parseCurrentSong($sock) {
 			else {
 				$array[$element] = $value;
 			}
-                        workerLog('currentsong : element : ' . $element . ' value : ' . $array[$element]);
+                        //workerLog('currentsong : element : ' . $element . ' value : ' . $array[$element]);
 
 			$line = strtok("\n");
 		}
