@@ -96,7 +96,7 @@ add_config_line()
 add_config_line "dtparam=spi=on"
 add_config_line "dtoverlay=vc4-kms-v3d,noaudio"
 add_config_line "max_framebuffers=2"
-add_config_line "dtoverlay=raspdac-mini-ili9341"
+add_config_line "dtoverlay=raspdac-mini-ili9341,rotate=270"
 
 # --------------------------------------------------------------------
 # labwc configuration
@@ -123,7 +123,7 @@ until wlr-randr --output SPI-1 --on --pos 0,0 2>/dev/null; do
 done
 
 wlr-randr \
-    --output SPI-1 --transform 180
+    --output SPI-1 
 
 sleep 3
 
@@ -132,10 +132,10 @@ wlr-randr \
 
 swayidle -w \
     timeout 1 true \
-    resume 'wlr-randr --output SPI-1 --on --pos 0,0; wlopm --on SPI-1; wlr-randr --output SPI-1 --transform 180' &
+    resume 'wlr-randr --output SPI-1 --on --pos 0,0; wlopm --on SPI-1; wlr-randr --output SPI-1' &
 
 EOF
-
+#    resume 'wlr-randr --output SPI-1 --on --pos 0,0; wlopm --on SPI-1; wlr-randr --output SPI-1 --transform 180' &
 chown "$TARGET_USER:$TARGET_USER" "$DISPLAY_SCRIPT"
 chmod 0755 "$DISPLAY_SCRIPT"
 
@@ -200,7 +200,8 @@ until runuser -u "\$USER_NAME" -- wlopm --on SPI-1 2>/dev/null; do
     sleep 1
 done
 runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --on --pos 0,0
-runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --transform 180
+#runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --transform 180
+runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 
 EOF
 
 cat > "$DISPLAY_OFF_SCRIPT" <<EOF
