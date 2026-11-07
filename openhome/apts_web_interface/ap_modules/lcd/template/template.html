@@ -162,7 +162,7 @@ input[type=range]#seek {
     padding: 0; 
   	font: inherit;
   	outline: none;
-  	color: #FF8445;
+  	color: var(--seek-color, #FF8445);
   	opacity: .8;
   	background: #444444;
   	overflow: hidden;
@@ -210,7 +210,7 @@ input[type=range]#seek::-webkit-slider-thumb {
   	margin: 0;
   	box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
   	box-shadow: -100% 0 0 80px #43e5f7;
-  	box-shadow: -100vw 0 0 100vw #FF8445;
+  	box-shadow: -100vw 0 0 100vw var(--seek-color, #FF8445);
 }
 
 .volume{
@@ -385,6 +385,7 @@ display:none;
         
         
 		const cover_img = document.getElementById("cover_artwork");
+		cover_img.onload = update_seek_color;
 		const cover_img_blur = document.getElementById("cover_artwork_blur");
 		const origin_wholetitletext = document.getElementById("wholetitle_origin");
 		const elapsed_text = document.getElementById("elapsed_text");
@@ -513,6 +514,20 @@ display:none;
 		}
 
 		// update album artwork
+		function update_seek_color(){
+			try{
+				let c = document.createElement("canvas");
+				c.width = 16; c.height = 16;
+				let ctx = c.getContext("2d");
+				ctx.drawImage(cover_img, 0, 0, 16, 16);
+				let d = ctx.getImageData(0, 0, 16, 16).data;
+				let r = 0, g = 0, b = 0, n = 0;
+				for(let i = 0; i < d.length; i += 4){ r += d[i]; g += d[i+1]; b += d[i+2]; n++; }
+				r = Math.round(r/n); g = Math.round(g/n); b = Math.round(b/n);
+				seek_bar.style.setProperty("--seek-color", `rgb(${255-r},${255-g},${255-b})`);
+			}catch(e){ }
+		}
+
 		function update_coverurl(new_data){
 			if( !new_data || !new_data.albumart){ 
 				cover_img.src = cover_url_fallback; 
