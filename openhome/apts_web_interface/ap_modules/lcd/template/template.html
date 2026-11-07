@@ -501,7 +501,12 @@ display:none;
 			}, 3000);
 		}
 		
+		var last_switch = 0;
 		function switch_view(){
+			let now = Date.now();
+			if (now - last_switch < 800) return;
+			last_switch = now;
+			poke_topbar();
 			let c = document.querySelector(".cube");
 			c.classList.add("troisDloin");
 			setTimeout( ()=>{c.classList.remove("troisDloin");}, 1000 )
