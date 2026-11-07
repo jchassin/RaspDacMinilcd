@@ -173,6 +173,14 @@ input[type=range]#seek {
     box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
 }
 
+.seekinfo {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7em;
+    color: white;
+    padding: 0 5px;
+}
+
 @keyframes seeksweep {
     0% { transform: translateX(0); }
     100% { transform: translateX(318px); }
@@ -231,6 +239,8 @@ span.wholetitle span:not(:last-child)::after {content: '-';margin:0px 5px;}
     width: 100%;
     white-space: nowrap;
     position: relative;
+    font-weight: normal;
+    font-size: 0.85em;
 }
 
 .marquee__inner > .wholetitle {
@@ -313,6 +323,11 @@ display:none;
 			<div class="spdif_view hidden" id="spdif"><span>SPDIF</span></div>
 
 			<div class="bottom semiopaque">
+				<div class="seekinfo">
+					<span id="elapsed_text">0:00</span>
+					<span id="tech_text"></span>
+					<span id="duration_text">--:--</span>
+				</div>
 				<div class="seek">
 					<input type="range" id="seek" value="0"></input>
 				</div>
@@ -372,6 +387,9 @@ display:none;
 		const cover_img = document.getElementById("cover_artwork");
 		const cover_img_blur = document.getElementById("cover_artwork_blur");
 		const origin_wholetitletext = document.getElementById("wholetitle_origin");
+		const elapsed_text = document.getElementById("elapsed_text");
+		const tech_text = document.getElementById("tech_text");
+		const duration_text = document.getElementById("duration_text");
 		const volume_text = document.getElementById("volume_text");
 		const state_icon = document.getElementById("state_icon");
 		const volume_icon = document.getElementById("volume_icon");
@@ -418,6 +436,7 @@ display:none;
                 update_state(new_data);
                 update_volume(new_data);
                 update_seek(new_data);
+                update_seekinfo(new_data);
                 update_bitdepth(new_data);
                 update_bitrate(new_data);
                 update_samplingfreq(new_data);
@@ -573,6 +592,19 @@ display:none;
             let volume = new_data.volume;
             if (volume < 10) volume = leadingZero(volume,2);
 			volume_text.innerText = volume;
+		}
+
+		function fmt_time(sec){
+			sec = Math.max(0, Math.floor(sec));
+			return Math.floor(sec/60) + ":" + ("0" + (sec%60)).slice(-2);
+		}
+
+		function update_seekinfo(new_data){
+			if(!new_data) return;
+			elapsed_text.innerText = (new_data.seek !== null && new_data.seek !== undefined) ? fmt_time(new_data.seek/1000) : "0:00";
+			duration_text.innerText = (new_data.duration && parseFloat(new_data.duration) > 0) ? fmt_time(parseFloat(new_data.duration)) : "--:--";
+			let tech = [new_data.bitdepth, new_data.samplerate ? new_data.samplerate + "k" : null, new_data.bitrate].filter(Boolean).join(" ");
+			tech_text.innerText = tech;
 		}
 
 		function update_seek(new_data){
