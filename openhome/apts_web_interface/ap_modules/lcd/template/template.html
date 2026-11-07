@@ -1,7 +1,7 @@
 <!--Audiophonics custom player view (volumio) version 1 -->
 
 <head>
-<meta name="viewport" content="width=device-width, user-scalable=no" />
+<meta name="viewport" content="width=320, user-scalable=no" />
 
 
 <style>
@@ -509,7 +509,7 @@ display:none;
 			}
 			if (wantScroll){
 				let scroll = `-${Math.round(overflow)}px`;
-				let ad = `${Math.max(overflow/100, 3)}s`;
+				let ad = `${Math.max(overflow/60 + 3, 5)}s`;
 				if (scroll !== lastScroll){ m.style.setProperty("--scroll", scroll); lastScroll = scroll; }
 				if (ad !== lastAd){ m.style.setProperty("--ad", ad); lastAd = ad; }
 			}
