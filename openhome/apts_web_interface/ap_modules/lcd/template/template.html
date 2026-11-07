@@ -603,7 +603,7 @@ display:none;
 			if(!new_data) return;
 			elapsed_text.innerText = (new_data.seek !== null && new_data.seek !== undefined) ? fmt_time(new_data.seek/1000) : "0:00";
 			duration_text.innerText = (new_data.duration && parseFloat(new_data.duration) > 0) ? fmt_time(parseFloat(new_data.duration)) : "--:--";
-			let tech = [new_data.bitdepth, new_data.samplerate ? new_data.samplerate + "k" : null, new_data.bitrate].filter(Boolean).join(" ");
+			let tech = [new_data.trackType, (new_data.samplerate && new_data.bitdepth) ? new_data.samplerate + " kHz/" + new_data.bitdepth + " bit" : null, new_data.bitrate].filter(Boolean).join(" ");
 			tech_text.innerText = tech;
 		}
 
