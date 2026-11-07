@@ -53,8 +53,8 @@ echo "* End of installation : Audiophonics ToolSet (web interface) - no reboot r
 echo started at $start_time finished at "$(date +"%T")" >> install_log.txt
 
 cd $start_pwd
-cp RaspDacMinilcd.conf /etc/nginx/sites-enabled 
-rm /etc/nginx/site-enable/default
+cp RaspDacMinilcd.conf /etc/nginx/sites-available/. 
+rm /etc/nginx/sites-enabled/default
 ln -s ../sites-available/RaspDacMinilcd.conf  /etc/nginx/sites-enabled/default
 systemctl restart nginx
 exit 0

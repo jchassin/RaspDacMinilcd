@@ -1,6 +1,7 @@
 exports.module_head = `<div class="content_name"><h2>LCD</h2><p>Configuration for LCD display</p></div>`
 const WEBSOCKET_INTERFACE = require("./websocket_interface.js").ws_interface;
 const websocket_interface = new WEBSOCKET_INTERFACE(4152);
+websocket_interface.on("debugmetrics", (ws, a)=>{ console.log("DEBUGMETRICS", JSON.stringify(a)); });
 const moode_listener = require("./moode_listener.js").moode_listener;
 
 
@@ -9,6 +10,36 @@ const os = require("os")
 const fs = require("fs");
 var alsa_state_waiting = false; 
 var filter_type = "?";
+var previous_state = null;
+var previous_elapsed = null;
+var display_on = true;
+var sleep_timer = null;
+const SLEEP_DELAY_MS = 120000;
+
+function wake_display(){
+    display_on = true;
+    if (sleep_timer){ clearTimeout(sleep_timer); sleep_timer = null; }
+    cp.exec('sudo /usr/local/bin/raspdac-display-on', (error, stdout, stderr) => {
+        if (error) {
+            console.warn(stderr || error);
+            return;
+        }
+    });
+}
+
+function schedule_sleep(){
+    if (sleep_timer || !display_on) return;
+    sleep_timer = setTimeout(()=>{
+        sleep_timer = null;
+        display_on = false;
+        cp.exec('sudo /usr/local/bin/raspdac-display-off', (error, stdout, stderr) => {
+            if (error) {
+                console.warn(stderr || error);
+                return;
+            }
+        });
+    }, SLEEP_DELAY_MS);
+}
 
 
 /*
@@ -22,6 +53,7 @@ var filter_type = "?";
  
 var moode = new moode_listener();
 moode.on("moode_data", function(data){ 
+    if (!data || data.state === undefined) return;
 
     // parse data in known dict so we only need to use one template for volumio & moode
     let parsed_data = {};
@@ -33,7 +65,7 @@ moode.on("moode_data", function(data){
     parsed_data.title = data.title || null;
     parsed_data.status = data.state || null;
     parsed_data.volume = data.volume || null;
-    //parsed_data.seek = data.elapsed*1000 || null;
+    parsed_data.seek = (data.elapsed !== undefined && data.elapsed !== null && data.elapsed !== "") ? parseFloat(data.elapsed)*1000 : null;
     parsed_data.duration = data.duration|| null;
     parsed_data.bitrate = data.bitrate|| null;
     parsed_data.samplerate = data.audio_sample_rate|| null;
@@ -42,17 +74,21 @@ moode.on("moode_data", function(data){
     
     websocket_interface.broadcast({header:"pushState",arg : parsed_data}); 
 
-    if ( data.state === 'play') {
-       cp.exec('sudo /usr/local/bin/raspdac-display-on', (error, stdout, stderr) => {
-          if (error) {
-             console.warn(stderr || error);
-             return;
-          }
-       });
-       //console.log('xset dpms force on');
+    var elapsed = parseFloat(data.elapsed);
+    var active = data.state === 'play' && !isNaN(elapsed) && elapsed !== previous_elapsed;
+
+    if ( active && (!display_on || previous_state !== data.state)) {
+       wake_display();
     }
+    else if ( !active ) {
+       schedule_sleep();
+    }
+    previous_state = data.state;
+    previous_elapsed = elapsed;
 });
- 
+
+wake_display();
+
 //moode.on("ready", function(){start_localui(start_lcd)})
 
 
@@ -157,7 +193,7 @@ exports.catch_url = function(url,req,res){
 				}
 				else{
 					let fileStream = fs.createReadStream(path);
-					res.writeHead(200, {"Content-Type": "text/html"});
+					res.writeHead(200, {"Content-Type": "text/html", "Cache-Control": "no-store"});
 					res.write(`<script type="application/javascript">${websocket_interface.ws_client()}</script>`);
 					res.write(`<script type="application/javascript">var filter_type="${filter_type}"</script>`);
 					fileStream.pipe(res);

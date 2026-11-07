@@ -1,7 +1,7 @@
 <!--Audiophonics custom player view (volumio) version 1 -->
 
 <head>
-<meta name="viewport" content="width=device-width, user-scalable=no" />
+<meta name="viewport" content="width=320, user-scalable=no" />
 
 
 <style>
@@ -9,30 +9,22 @@
 * { box-sizing: border-box; }
 
 .cube {
-  width: 100vw;
-  height: 100vh;
-  transform-style: preserve-3d;
-  transform: translateZ(-50vw);
-  transition: transform 1s;
+  width: 320px;
+  height: 240px;
 }
 
-.cube.show-front  { transform: translateZ(  calc(-1 * var(--perspective_ratio) )  ) rotateY(   0deg); }
-.cube.show-bottom { transform: translateZ(  calc(-1 * var(--perspective_ratio) )  ) rotateX(  90deg); }
-
 .cube__face {
-overflow:hidden;
+  overflow: hidden;
   position: absolute;
-  width: 100vw;
-  height: 100vh;
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 240px;
   background: black;
 }
 
-.cube__face--front  {transform: rotateY(  0deg) translateZ( var(--perspective_ratio) ) ;}
-.cube__face--bottom {transform: rotateX(-90deg) translateZ( var(--perspective_ratio) ) ;}
-
-
-.cube.show-front.troisDloin{ transform: translateZ(  calc(-2 * var(--perspective_ratio) )  ) rotateY(   0deg); }
-.cube.show-bottom.troisDloin{ transform: translateZ(  calc(-2 * var(--perspective_ratio) )  ) rotateX(  90deg); }
+.cube.show-front  .cube__face--bottom { display: none; }
+.cube.show-bottom .cube__face--front  { display: none; }
 
 
 body{
@@ -44,8 +36,8 @@ body{
 	font-size: 20px;
 	font-weight: bold;
 	
-	width: 100vw;
-  height: 100vh;
+	width: 320px;
+  height: 240px;
   perspective: 1200px;
   
   
@@ -73,7 +65,9 @@ body{
 
 img#cover_artwork{
     max-height: 100%;
+    max-width: 100%;
     height: 100%;
+    object-fit: contain;
 	z-index:1;
 	position:relative;
 }
@@ -81,8 +75,12 @@ img#cover_artwork{
 img#cover_artwork_blur{
     position: absolute;
     z-index: 0;
-    filter: blur(18px);
-    width: 100%;
+    filter: blur(10px);
+    width: 25%;
+    height: 25%;
+    object-fit: cover;
+    transform: scale(4);
+    transform-origin: center;
 }
 
 
@@ -175,6 +173,23 @@ input[type=range]#seek {
     box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
 }
 
+.seekinfo {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7em;
+    color: white;
+    padding: 0 5px;
+}
+
+@keyframes seeksweep {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(318px); }
+}
+
+input[type=range]#seek.live::-webkit-slider-thumb {
+    animation: seeksweep 10s linear infinite;
+}
+
 input[type=range]#seek::-webkit-slider-runnable-track {
  	-webkit-appearance:none;
  	height: 3px;
@@ -209,43 +224,48 @@ span.wholetitle span:not(:last-child)::after {content: '-';margin:0px 5px;}
 #marquee {
     position: relative;
     overflow: hidden;
-    --offset: 0vw;
-    --move-initial: calc(-25% + var(--offset));
-    --move-final: calc(-50% + var(--offset));
+    white-space: nowrap;
+    text-align: center;
+    max-width: 100%;
+    contain: layout paint;
+}
+
+#marquee.autoscroll {
+    text-align: left;
 }
 
 .marquee__inner {
+    display: block;
+    width: 100%;
     white-space: nowrap;
-    width:100%;
-    display: flex;
     position: relative;
-    justify-content:center;
-
+    font-weight: normal;
+    font-size: 0.85em;
 }
 
-.autoscroll>.marquee__inner {
-    justify-content:unset;
-    width: fit-content;
-    animation: marquee var(--ad) linear infinite;
-    transform: translate3d(var(--move-initial), 0, 0);
-}
-
-.autoscroll >.marquee__inner > .wholetitle {
-    padding: 0 10vw;
+.marquee__inner > .wholetitle {
+    display: inline-block;
 }
 
 .wholetitle:not(:first-child) {display: none;}
-.autoscroll >.marquee__inner > .wholetitle:not(:first-child) {display: unset;}
 
-
+#marquee.autoscroll .marquee__inner > .wholetitle {
+    padding-right: 32px;
+    animation: marquee var(--ad, 20s) linear infinite;
+    will-change: transform;
+}
 
 @keyframes marquee {
     0% {
-        transform: translate3d(var(--move-initial), 0, 0);
+        transform: translateX(0);
+    }
+
+    70% {
+        transform: translateX(var(--scroll, -100%));
     }
 
     100% {
-        transform: translate3d(var(--move-final), 0, 0);
+        transform: translateX(var(--scroll, -100%));
     }
 }
 
@@ -303,6 +323,11 @@ display:none;
 			<div class="spdif_view hidden" id="spdif"><span>SPDIF</span></div>
 
 			<div class="bottom semiopaque">
+				<div class="seekinfo">
+					<span id="elapsed_text">0:00</span>
+					<span id="tech_text"></span>
+					<span id="duration_text">--:--</span>
+				</div>
 				<div class="seek">
 					<input type="range" id="seek" value="0"></input>
 				</div>
@@ -362,6 +387,9 @@ display:none;
 		const cover_img = document.getElementById("cover_artwork");
 		const cover_img_blur = document.getElementById("cover_artwork_blur");
 		const origin_wholetitletext = document.getElementById("wholetitle_origin");
+		const elapsed_text = document.getElementById("elapsed_text");
+		const tech_text = document.getElementById("tech_text");
+		const duration_text = document.getElementById("duration_text");
 		const volume_text = document.getElementById("volume_text");
 		const state_icon = document.getElementById("state_icon");
 		const volume_icon = document.getElementById("volume_icon");
@@ -384,11 +412,15 @@ display:none;
 			status: null,
 			volume : null
 		};
+		var lastAutoscroll = false;
+		var lastScroll = "";
+		var lastAd = "";
+		var COM = null;
 
         
         function init_COM(){
             console.log("connection");
-            let COM  = new socket_handler();
+            COM = new socket_handler();
             COM.addEventListener("ip", (ip)=>{ip_container.innerText = ip});
             COM.addEventListener("input", (input)=>{
                 if(input === "'SPDIF'\n"){
@@ -404,6 +436,7 @@ display:none;
                 update_state(new_data);
                 update_volume(new_data);
                 update_seek(new_data);
+                update_seekinfo(new_data);
                 update_bitdepth(new_data);
                 update_bitrate(new_data);
                 update_samplingfreq(new_data);
@@ -420,6 +453,43 @@ display:none;
 		setInterval( updateclock,30000 );
 		updateclock();  
 		filter_container.innerText = filter_type;
+
+		if (location.hash.indexOf("debug") !== -1){
+			let frames = 0;
+			let t0 = performance.now();
+			function count(){
+				frames++;
+				if (performance.now() - t0 < 3000) requestAnimationFrame(count);
+				else{
+					let fps = {fps: +(frames/3).toFixed(1), vis: document.visibilityState, focus: document.hasFocus()};
+					console.log("DEBUGFPS", JSON.stringify(fps));
+					if (COM) COM.send("debugmetrics", fps);
+				}
+			}
+			requestAnimationFrame(count);
+			setTimeout(()=>{
+				let m = document.getElementById("marquee");
+				let metrics = {
+					iw: window.innerWidth, ih: window.innerHeight, dpr: window.devicePixelRatio,
+					bodyScrollW: document.body.scrollWidth, bodyClientW: document.body.clientWidth,
+					face: document.querySelector(".cube__face--front").getBoundingClientRect().toJSON(),
+					artwork: document.querySelector(".artwork").getBoundingClientRect().toJSON(),
+					cover: document.getElementById("cover_artwork").getBoundingClientRect().toJSON(),
+					marquee: m.getBoundingClientRect().toJSON(),
+					spanW: origin_wholetitletext.getBoundingClientRect().width,
+					autoscroll: m.classList.contains("autoscroll")
+				};
+				console.log("DEBUGMETRICS " + JSON.stringify(metrics));
+				if (COM) COM.send("debugmetrics", metrics);
+				if (COM) COM.addEventListener("switch_view", ()=>{
+					setTimeout(()=>{
+						let cls = document.querySelector(".cube").className;
+						console.log("DEBUGVIEW " + cls);
+						if (COM) COM.send("debugmetrics", "VIEW " + cls);
+					}, 300);
+				});
+			}, 3000);
+		}
 		
 		function switch_view(){
 			let c = document.querySelector(".cube");
@@ -464,14 +534,19 @@ display:none;
 					for(a of containers){
 						a.innerHTML = parsed_text;
 					}
-				let m = document.getElementById("marquee");
-				if (origin_wholetitletext.getBoundingClientRect().width >= document.body.clientWidth){
-					m.style.setProperty("--ad",`${origin_wholetitletext.innerText.length/3}s`);
-					m.classList.add("autoscroll");
-				}
-				else{
-					m.classList.remove("autoscroll");
-				}
+			}
+			let m = document.getElementById("marquee");
+			let overflow = origin_wholetitletext.getBoundingClientRect().width - m.clientWidth;
+			let wantScroll = overflow > 0;
+			if (wantScroll !== lastAutoscroll){
+				lastAutoscroll = wantScroll;
+				m.classList.toggle("autoscroll", wantScroll);
+			}
+			if (wantScroll){
+				let scroll = `-${Math.round(overflow)}px`;
+				let ad = `${Math.max(overflow/60 + 3, 5)}s`;
+				if (scroll !== lastScroll){ m.style.setProperty("--scroll", scroll); lastScroll = scroll; }
+				if (ad !== lastAd){ m.style.setProperty("--ad", ad); lastAd = ad; }
 			}
 		}
 		
@@ -519,9 +594,36 @@ display:none;
 			volume_text.innerText = volume;
 		}
 
+		function fmt_time(sec){
+			sec = Math.max(0, Math.floor(sec));
+			return Math.floor(sec/60) + ":" + ("0" + (sec%60)).slice(-2);
+		}
+
+		function update_seekinfo(new_data){
+			if(!new_data) return;
+			elapsed_text.innerText = (new_data.seek !== null && new_data.seek !== undefined) ? fmt_time(new_data.seek/1000) : "0:00";
+			duration_text.innerText = (new_data.duration && parseFloat(new_data.duration) > 0) ? fmt_time(parseFloat(new_data.duration)) : "--:--";
+			let tech = [new_data.trackType, (new_data.samplerate && new_data.bitdepth) ? new_data.samplerate + " kHz/" + new_data.bitdepth + " bit" : null, new_data.bitrate].filter(Boolean).join(" ");
+			tech_text.innerText = tech;
+		}
+
 		function update_seek(new_data){
-			if(new_data.seek != current_data.seek && new_data.duration ){
-				seek_bar.value = parseInt(new_data.seek / (new_data.duration*1000) * 100);
+			if(new_data.seek === null || new_data.seek === undefined || new_data.status === "stop"){
+				seek_bar.classList.remove("live");
+				seek_bar.value = 0;
+				return;
+			}
+			if(new_data.duration && parseFloat(new_data.duration) > 0){
+				seek_bar.classList.remove("live");
+				if(new_data.seek != current_data.seek){
+					seek_bar.value = parseInt(new_data.seek / (parseFloat(new_data.duration)*1000) * 100);
+				}
+			}
+			else if (new_data.status === "play"){
+				seek_bar.classList.add("live");
+			}
+			else{
+				seek_bar.classList.remove("live");
 			}
 		}
 		
