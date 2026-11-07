@@ -83,8 +83,12 @@ img#cover_artwork{
 img#cover_artwork_blur{
     position: absolute;
     z-index: 0;
-    filter: blur(18px);
-    width: 100%;
+    filter: blur(10px);
+    width: 25%;
+    height: 25%;
+    object-fit: cover;
+    transform: scale(4);
+    transform-origin: center;
 }
 
 
@@ -237,6 +241,7 @@ span.wholetitle span:not(:last-child)::after {content: '-';margin:0px 5px;}
 #marquee.autoscroll .marquee__inner > .wholetitle {
     padding-right: 10vw;
     animation: marquee var(--ad, 20s) linear infinite;
+    will-change: transform;
 }
 
 @keyframes marquee {
