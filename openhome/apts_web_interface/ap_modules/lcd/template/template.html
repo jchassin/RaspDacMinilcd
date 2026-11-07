@@ -453,6 +453,13 @@ display:none;
 				};
 				console.log("DEBUGMETRICS " + JSON.stringify(metrics));
 				if (COM) COM.send("debugmetrics", metrics);
+				if (COM) COM.addEventListener("switch_view", ()=>{
+					setTimeout(()=>{
+						let cls = document.querySelector(".cube").className;
+						console.log("DEBUGVIEW " + cls);
+						if (COM) COM.send("debugmetrics", "VIEW " + cls);
+					}, 300);
+				});
 			}, 3000);
 		}
 		
