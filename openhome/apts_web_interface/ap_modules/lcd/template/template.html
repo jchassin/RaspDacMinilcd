@@ -576,7 +576,7 @@ display:none;
 		}
 
 		function update_seek(new_data){
-			if(new_data.seek === null || new_data.seek === undefined){
+			if(new_data.seek === null || new_data.seek === undefined || new_data.status === "stop"){
 				seek_bar.classList.remove("live");
 				seek_bar.value = 0;
 				return;
@@ -587,8 +587,11 @@ display:none;
 					seek_bar.value = parseInt(new_data.seek / (parseFloat(new_data.duration)*1000) * 100);
 				}
 			}
-			else{
+			else if (new_data.status === "play"){
 				seek_bar.classList.add("live");
+			}
+			else{
+				seek_bar.classList.remove("live");
 			}
 		}
 		
