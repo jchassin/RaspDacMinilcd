@@ -211,6 +211,7 @@ exports.catch_url = function(url,req,res){
 					if (redirects > 3){ res.writeHead(502); res.end(); return; }
 					let client = t.startsWith("https:") ? https : http;
 					client.get(t, { headers: { "User-Agent": "RaspDacMinilcd/1.0 (+https://github.com/jchassin/RaspDacMinilcd)" } }, (up)=>{
+						console.log("coverproxy upstream", up.statusCode, up.headers["content-type"], "len="+up.headers["content-length"], "te="+up.headers["transfer-encoding"], "enc="+up.headers["content-encoding"], t.slice(0,90));
 						if (up.statusCode >= 300 && up.statusCode < 400 && up.headers.location){
 							up.resume();
 							let loc = up.headers.location;
