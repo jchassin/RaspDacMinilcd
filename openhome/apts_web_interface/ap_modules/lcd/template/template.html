@@ -495,7 +495,10 @@ display:none;
 					cover: document.getElementById("cover_artwork").getBoundingClientRect().toJSON(),
 					marquee: m.getBoundingClientRect().toJSON(),
 					spanW: origin_wholetitletext.getBoundingClientRect().width,
-					autoscroll: m.classList.contains("autoscroll")
+					autoscroll: m.classList.contains("autoscroll"),
+					coverSrc: cover_img.currentSrc || cover_img.src,
+					coverNatural: cover_img.naturalWidth + "x" + cover_img.naturalHeight,
+					coverComplete: cover_img.complete
 				};
 				console.log("DEBUGMETRICS " + JSON.stringify(metrics));
 				if (COM) COM.send("debugmetrics", metrics);
