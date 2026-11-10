@@ -207,11 +207,23 @@ exports.catch_url = function(url,req,res){
 			if(url[1] && url[1].split("?")[0] === "coverproxy"){
 				let target = decodeURIComponent((req.url.split("?u=")[1] || ""));
 				if(!target){ res.writeHead(400); res.end(); return; }
-				let client = target.startsWith("https:") ? https : http;
-				client.get(target, (up)=>{
-					res.writeHead(200, {"Content-Type": up.headers["content-type"] || "image/jpeg", "Cache-Control": "public, max-age=86400"});
-					up.pipe(res);
-				}).on("error", ()=>{ res.writeHead(502); res.end(); });
+				let fetch_cover = (t, redirects)=>{
+					if (redirects > 3){ res.writeHead(502); res.end(); return; }
+					let client = t.startsWith("https:") ? https : http;
+					client.get(t, { headers: { "User-Agent": "RaspDacMinilcd/1.0 (+https://github.com/jchassin/RaspDacMinilcd)" } }, (up)=>{
+						console.log("coverproxy upstream", up.statusCode, up.headers["content-type"], "len="+up.headers["content-length"], "te="+up.headers["transfer-encoding"], "enc="+up.headers["content-encoding"], t.slice(0,90));
+						if (up.statusCode >= 300 && up.statusCode < 400 && up.headers.location){
+							up.resume();
+							let loc = up.headers.location;
+							if (!/^https?:\/\//.test(loc)) loc = t.replace(/^(https?:\/\/[^\/]+).*/, "$1") + loc;
+							fetch_cover(loc, redirects+1);
+							return;
+						}
+						res.writeHead(up.statusCode === 200 ? 200 : 502, {"Content-Type": up.headers["content-type"] || "image/jpeg", "Cache-Control": "public, max-age=86400"});
+						up.pipe(res);
+					}).on("error", ()=>{ res.writeHead(502); res.end(); });
+				};
+				fetch_cover(target, 0);
 			}
 			if(url[1] === "switch_view"){
 				console.log("view")
