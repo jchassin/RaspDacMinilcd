@@ -265,7 +265,7 @@ span.wholetitle span:not(:last-child)::after {content: '-';margin:0px 5px;}
 
 #marquee.autoscroll .marquee__inner > .wholetitle {
     padding-right: 32px;
-    animation: marquee var(--ad, 20s) linear infinite;
+    animation: marquee var(--ad, 20s) linear infinite alternate;
     will-change: transform;
 }
 
@@ -274,7 +274,11 @@ span.wholetitle span:not(:last-child)::after {content: '-';margin:0px 5px;}
         transform: translateX(0);
     }
 
-    70% {
+    15% {
+        transform: translateX(0);
+    }
+
+    85% {
         transform: translateX(var(--scroll, -100%));
     }
 
