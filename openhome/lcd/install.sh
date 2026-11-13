@@ -194,6 +194,11 @@ USER_UID="\$(id -u "\$USER_NAME")"
 export XDG_RUNTIME_DIR="/run/user/\$USER_UID"
 export WAYLAND_DISPLAY="wayland-0"
 
+# Rebind the panel driver: re-creates the SPI-1 output and drives GPIO24
+# (reset) high again. The LCD backlight (BLK) is wired to the reset line,
+# so this also turns the backlight back on.
+echo spi0.0 > /sys/bus/spi/drivers/ili9341/bind 2>/dev/null
+
 i=0
 until runuser -u "\$USER_NAME" -- wlopm --on SPI-1 2>/dev/null; do
     i=\$((i+1))
@@ -203,6 +208,7 @@ until runuser -u "\$USER_NAME" -- wlopm --on SPI-1 2>/dev/null; do
     sleep 1
 done
 runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --on --pos 0,0
+runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --custom-mode 320x240 2>/dev/null
 #runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --transform 180
 runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 
 # restore backlight (fallback)
@@ -225,6 +231,10 @@ runuser -u "\$USER_NAME" -- wlopm --off SPI-1
 for d in /sys/class/backlight/*/; do
     [ -e "\$d/brightness" ] && echo 0 > "\$d/brightness" 2>/dev/null
 done
+# Brutal backlight off: BLK is wired to the reset line (GPIO24), so
+# unbinding the panel driver releases GPIO24 (input, pulled low) ->
+# BLK ~0V -> backlight LEDs off.
+echo spi0.0 > /sys/bus/spi/drivers/ili9341/unbind 2>/dev/null
 EOF
 
 
