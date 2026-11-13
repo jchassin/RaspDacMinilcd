@@ -205,6 +205,10 @@ done
 runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --on --pos 0,0
 #runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 --transform 180
 runuser -u "\$USER_NAME" -- wlr-randr --output SPI-1 
+# restore backlight (fallback)
+for d in /sys/class/backlight/*/; do
+    [ -e "\$d/brightness" ] && echo "\$(cat "\$d/max_brightness" 2>/dev/null || echo 255)" > "\$d/brightness" 2>/dev/null
+done
 EOF
 
 cat > "$DISPLAY_OFF_SCRIPT" <<EOF
@@ -216,7 +220,11 @@ USER_UID="\$(id -u "\$USER_NAME")"
 export XDG_RUNTIME_DIR="/run/user/\$USER_UID"
 export WAYLAND_DISPLAY="wayland-0"
 
-exec runuser -u "\$USER_NAME" -- wlopm --off SPI-1
+runuser -u "\$USER_NAME" -- wlopm --off SPI-1
+# brute-force backlight off (fallback if DRM did not blank it)
+for d in /sys/class/backlight/*/; do
+    [ -e "\$d/brightness" ] && echo 0 > "\$d/brightness" 2>/dev/null
+done
 EOF
 
 
