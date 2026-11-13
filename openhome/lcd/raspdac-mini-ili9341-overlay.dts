@@ -13,7 +13,12 @@
  *   DC      : GPIO27
  *   RESET   : GPIO24
  *
- * Backlight is intentionally not controlled here.
+ * Backlight: the LCD "LED" pin is hardwired to 3V3 on the HAT, so there is
+ * no software control out of the box. To make it controllable, do the
+ * hardware mod: cut the LED->3V3 trace on the HAT and wire the LCD "LED"
+ * pin to GPIO18 (physical pin 12). The gpio-backlight node below then
+ * creates /sys/class/backlight/lcd_backlight and the DRM core switches the
+ * backlight off automatically when the output is blanked (wlopm --off).
  *
  * The in-kernel DRM tiny ILI9341 driver matches "adafruit,yx240qv29".
  * rotation = <90> gives a 320x240 logical landscape display.
@@ -38,6 +43,7 @@
 
                 dc-gpios = <&gpio 27 0>;
                 reset-gpios = <&gpio 24 0>;
+                backlight = <&lcd_backlight>;
 
                 rotation = <90>;
 
@@ -50,6 +56,18 @@
         target = <&spidev0>;
         __overlay__ {
             status = "disabled";
+        };
+    };
+
+    fragment@2 {
+        target-path = "/";
+        __overlay__ {
+            lcd_backlight: backlight@0 {
+                compatible = "gpio-backlight";
+                gpios = <&gpio 18 GPIO_ACTIVE_HIGH>;
+                default-on;
+                status = "okay";
+            };
         };
     };
 
